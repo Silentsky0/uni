@@ -1,0 +1,80 @@
+Autor: Paweł Cichowski
+yytext              Typ symbolu      Wartość symbolu znakowo
+
+Processing directive #include <stdio.h>
+Processing directive #include "test.h"
+unsigned            KW_UNSIGNED     
+char                KW_CHAR         
+uc                  IDENT           uc
+;                   ;               
+int                 KW_INT          
+fromASCII           IDENT           fromASCII
+=                   =               
+128                 INTEGER_CONST   128
+,                   ,               
+toASCII             IDENT           toASCII
+=                   =               
+255                 INTEGER_CONST   255
+;                   ;               
+void                KW_VOID         
+main                IDENT           main
+(                   (               
+void                KW_VOID         
+)                   )               
+{                   {               
+printf              IDENT           printf
+(                   (               
+"\n\n\nRozszerzone kSTRING_CONST    "\n\n\nRozszerzone kody ASCII\n\n"
+)                   )               
+;                   ;               
+for                 KW_FOR          
+(                   (               
+uc                  IDENT           uc
+=                   =               
+fromASCII           IDENT           fromASCII
+;                   ;               
+uc                  IDENT           uc
+<=                  LE              
+toASCII             IDENT           toASCII
+;                   ;               
+uc1                 IDENT           uc1
+++                  INC             
+)                   )               
+{                   {               
+printf              IDENT           printf
+(                   (               
+"%3d:%2c"           STRING_CONST    "%3d:%2c"
+,                   ,               
+uc                  IDENT           uc
+,                   ,               
+uc                  IDENT           uc
+)                   )               
+;                   ;               
+}                   }               
+}                   }               
+int                 KW_INT          
+x1                  IDENT           x1
+=                   =               
+fromASCII           IDENT           fromASCII
++                   +               
+2                   INTEGER_CONST   2
+*                   *               
+(                   (               
+20                  INTEGER_CONST   20
++                   +               
+toASCII             IDENT           toASCII
+)                   )               
+;                   ;               
+double              KW_DOUBLE       
+realTest            IDENT           realTest
+=                   =               
+12.34               FLOAT_CONST     12.34
++                   +               
+.56                 FLOAT_CONST     .56
++                   +               
+78.                 FLOAT_CONST     78.
+;                   ;               
+Unexpected closing of comment in line 19
+Unfinished string opened in line 20
+Unfinished comment opened in line 21
+ 
