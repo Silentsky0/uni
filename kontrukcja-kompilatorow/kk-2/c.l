@@ -70,7 +70,7 @@ struct {return process_token(yytext, "KW_STRUCT", "", KW_STRUCT);}
  /* wykrywanie liczb bez znaku całkowitych i zmiennoprzecinkowych */
 
 [0-9]+ {return process_token(yytext, "INTEGER_CONST", yytext, INTEGER_CONST);}
-[0-9]*"."[0-9]+e?-?[0-9]+ {return process_token(yytext, "FLOAT_CONST", yytext, FLOAT_CONST);}
+[0-9]*"."[0-9]+e?-?[0-9]* {return process_token(yytext, "FLOAT_CONST", yytext, FLOAT_CONST);}
 [0-9]+"."[0-9]*e?-?[0-9]* {return process_token(yytext, "FLOAT_CONST", yytext, FLOAT_CONST);}
 
 
@@ -87,12 +87,12 @@ struct {return process_token(yytext, "KW_STRUCT", "", KW_STRUCT);}
 
  /* wykrywanie symboli końcowych jednoznakowych: operatorów, interpunkcji */
 
-[\+\-\*/;,=(){}\.\[\]\<] {return process_token(yytext, yytext, "", *yytext);}
+[\+\-\*/;,=(){}\.\[\]\<\>\?\:] {return process_token(yytext, yytext, "", *yytext);}
 
 
  /* wykrywanie dyrektywy dołączania plików */
 
-#include[[:blank:]]+(\"[a-zA-Z0-9]+"."h\")|(<[a-zA-Z0-9]+"."h>) {printf("Processing directive %s\n", yytext);}
+#include[[:blank:]]+(\"[a-zA-Z0-9]+"."h\")|(\<[a-zA-Z0-9]+"."h\>) {printf("Processing directive %s\n", yytext);}
 
 
  /* wykrywanie napisów z użyciem warunków początkowych */

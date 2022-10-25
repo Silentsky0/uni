@@ -169,14 +169,16 @@ SUBSCRIPT: '[' EXPR ']'
 S_FUNCTION: DATA_TYPE FUN_HEAD BLOCK
    | KW_VOID FUN_HEAD BLOCK
 
+{found("S_FUNCTION", $2);}
 ;
 
 /* FUN_HEAD */
  /* function header starts with an identifier (IDENT), followed by 
     formal parameters (FORM_PARAMS) in parentheses */
 
-FUN_HEAD: IDENT '(' FORM_PARAMS ')' { found("FUN_HEAD", $1);}
+FUN_HEAD: IDENT '(' FORM_PARAMS ')'
 
+{ found("FUN_HEAD", $1);}
 ;
 
 /* FORM_PARAMS */
@@ -203,6 +205,7 @@ FORM_PARAM_LIST: FORM_PARAM
 
 FORM_PARAM: DATA_TYPE IDENT
 
+{found("FORM_PARAM", $2);}
 ;
 
 /* BLOCK */
@@ -213,6 +216,7 @@ FORM_PARAM: DATA_TYPE IDENT
 BLOCK: INSTRUCTION
    | '{' DECL_LIST INSTR_LIST '}'
 
+{found("BLOCK", "");}
 ;
 
 /* DECL_LIST */
@@ -222,6 +226,7 @@ BLOCK: INSTRUCTION
 DECL_LIST: %empty
    | DECL_LIST S_DECLARACTION
 
+{found("DECL_LIST", "");}
 ;
 
 /* INSTR_LIST */
@@ -248,8 +253,12 @@ INSTR_LIST: %empty
 
 INSTRUCTION: ';'
    | FUN_CALL
-
-/* TODO */
+   | FOR_INSTR
+   | ASSIGNMENT ';'
+   | INCR ';'
+   | IF_INSTR
+   | WHILE_INSTR
+   | DO_WHILE
 
 ;
 
@@ -260,6 +269,7 @@ INSTRUCTION: ';'
 
 FUN_CALL: IDENT '(' ACT_PARAMS ')' ';'
 
+{found("FUN_CALL", $1);}
 ;
 
 /* ACT_PARAMS */
@@ -286,26 +296,41 @@ ACT_PARAM_LIST: ACT_PARAM
 ACT_PARAM: EXPR
    | STRING_CONST
 
+{found("ACT_PARAM", "");}
 ;
 
 /* INCR */
  /* incrementation consist of an identifier, a qualifier (QUALIF)
     and an incrementation operator (INC) */
 
+INCR: IDENT QUALIF INC
+
+{found("INCR", $1);}
+;
+
 /* QUALIF */
  /* qualifier can be subscripts (SUBSCRIPTS),
     or it may consist of a dot (period), identifier and a qualifier */
+
+QUALIF: SUBSCRIPTS
+   | '.' IDENT QUALIF
+
+;
 
 /* ASSIGNMENT */
  /* assignment consists of an identifier, qualifier,
     assignment operator and an expression */
 
+ASSIGNMENT: IDENT QUALIF '=' EXPR
+
+{found("ASSIGNMENT", $1);}
+;
+
 /* NUMBER */
  /* a number can either be an integer constant or a floating point constant */
 
-// TODO
-/*NUMBER: INTEGER_CONST
-   | FLOAT_CONST */
+NUMBER: INTEGER_CONST
+   | FLOAT_CONST
 
 ;
 
@@ -321,9 +346,15 @@ ACT_PARAM: EXPR
     expression in parentheses,
     or a conditional expression (COND_EXPR) (use priority of COND) */
 
-EXPR: %empty
-
-/* TODO */
+EXPR: NUMBER
+   | IDENT QUALIF
+   | EXPR '+' EXPR
+   | EXPR '-' EXPR
+   | EXPR '*' EXPR
+   | EXPR '/' EXPR
+   | '-' EXPR %prec NEG
+   | '(' EXPR ')'
+   |  COND_EXPR %prec COND
 
 ;
 
@@ -334,10 +365,20 @@ EXPR: %empty
     right parenthesis, and a block (BLOCK)
  */
 
+FOR_INSTR: KW_FOR '(' ASSIGNMENT ';' LOG_EXPR ';' INCR ')' BLOCK
+
+{found("FOR_INSTR", "");}
+;
 
 /* LOG_EXPR */
  /* logical expression consists of two arithmetic expressions (EXPR),
     with operators <= (LE), <, and  > in between. */
+
+LOG_EXPR: EXPR LE EXPR
+   | EXPR '<' EXPR
+   | EXPR '>' EXPR
+
+;
 
 /* IF_INSTR */
  /* conditional expression consists of keyword if (KW_IF), left parenthesis,
@@ -345,14 +386,29 @@ EXPR: %empty
     and else part (ELSE_PART)
   */
 
+IF_INSTR: KW_IF '(' LOG_EXPR ')' BLOCK ELSE_PART
+
+{found("IF_INSTR", "");}
+;
+
 /* ELSE_PART */
 /* else part can either be empty or it may consist of keword else (KW_ELSE)
    and a block (BLOCK) */
+
+ELSE_PART: /* empty */
+   | KW_ELSE BLOCK
+
+;
 
 /* WHILE_INSTR */
 /* while loop consists of keyword while (KW_WHILE), left parenthesis,
    logical expression (LOG_EXPR), right parenthesis, and a block (BLOCK)
  */
+
+WHILE_INSTR: KW_WHILE '(' LOG_EXPR ')' BLOCK
+
+{found("WHILE_INSTR", "");}
+;
 
 /* DO_WHILE */
 /* do while loop consists of keyword do (KW_DO), block (BLOCK),
@@ -360,9 +416,20 @@ EXPR: %empty
    logical expression (LOG_EXPR), right parenthesis, and a semicolon
  */
 
+DO_WHILE: KW_DO BLOCK KW_WHILE '(' LOG_EXPR ')' ';'
+
+{found("DO_WHILE", "");}
+;
+
 /* COND_EXPR */
 /* conditional expression consists of a logical expression (LOG_EXPR),
    question mark, expression (EXPR), colon, and expression */
+
+COND_EXPR: LOG_EXPR '?' EXPR ':' EXPR
+
+{found("COND_EXPR", "");}
+;
+
 %%
 
 
