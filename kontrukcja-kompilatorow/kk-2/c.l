@@ -64,7 +64,7 @@ struct {return process_token(yytext, "KW_STRUCT", "", KW_STRUCT);}
  /* wykrywanie identyfikatorów */
 
 [a-zA-Z]+[a-zA-Z0-9_]* {return process_token(yytext, "IDENT", yytext, IDENT);}
-[a-zA-Z_]+[a-zA-Z0-9]+ {return process_token(yytext, "IDENT", yytext, IDENT);}
+[a-zA-Z_]+[a-zA-Z0-9]+_* {return process_token(yytext, "IDENT", yytext, IDENT);}
 
 
  /* wykrywanie liczb bez znaku całkowitych i zmiennoprzecinkowych */
