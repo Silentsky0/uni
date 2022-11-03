@@ -10,17 +10,13 @@ int main () {
     struct file file;
 
     file_init(&file);
-    
-    struct record t = test_record();
 
-    file_append_record(&file, &t);
-    
-    printf("%s%d\n\n", test_record().id.identity_series, test_record().id.identity_number);
-
-    int status = file_import("./data/5-people.file");
+    int status = file_import(&file, "./data/5-people.file");
 
     if (status < 0)
-        printf("there's something wrong, error code %d", status);
+        printf("error importing records from file, error code %d", status);
+
+    file_print(&file);
 
     return 0;
 }

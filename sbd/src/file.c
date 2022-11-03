@@ -4,30 +4,40 @@
 #include <memory.h>
 #include "common/status.h"
 
+int str_to_record(struct record *rec, char* str);
+
 void file_init(struct file* file) {
     file->num_records = 0;
+    file->num_overflow_records = 0;
     file->records = NULL;
-    file->overflow = NULL;
+    file->overflow = malloc(100 * sizeof(struct record)); // TODO fix simplified version
+    file->ov_start = file->overflow;
 }
 
-int file_append_record(struct file *file, struct record* record) {
-    
-    // TODO simplified version
+int file_append_record(struct file *file, struct record *record) {
 
-    file->overflow = malloc(5 * sizeof(struct record));
+    memcpy((void *)file->ov_start, (void *)record, sizeof(struct record));
 
-    if (file->overflow == NULL)
-        return -ENOMEM;
+    printf("%p %p\n", file->ov_start, record);
 
-    file->ov_start = file->overflow;
+    char *byte = (char *)record;
+    for (int i = 0; i < 32; i++) {
+        printf("%d\n", *byte);
+        byte++;
+    }
 
-    memcpy(file->ov_start, (void *)record, sizeof(struct record));
+    //memcpy(file->ov_start, (void *)&record, sizeof(struct record));
     file->ov_start += sizeof(struct record);
+    file->records += 1;
+
+    record_print(*record);
+
+    free(record);
 
     return 0;
 }
 
-int file_import(const char* import_path) {
+int file_import( struct file *file, const char* import_path) {
 
     FILE *fp;
 
@@ -41,13 +51,53 @@ int file_import(const char* import_path) {
         return -EIO;
 
     while ((read = getline(&line, &len, fp)) != -1) {
-        printf("Retrieved line of length %zu:\n", read);
-        printf("%s\n", line);
+        struct record record_to_add;
+        str_to_record(&record_to_add, line);
+        record_print(record_to_add);
+        file_append_record(file, &record_to_add);
     }
 
     fclose(fp);
     if (line)
         free(line);
+
+    return 0;
+}
+
+// TODO may be in utils
+int str_to_record(struct record *rec, char* str){
+
+
+
+    char * token = strtok(str, " ");
+    rec->data.name = token;
+
+    token = strtok(NULL, " ");
+    rec->data.surname = token;
+
+    token = strtok(NULL, " ");
+    char series[4];
+    char number[6];
+    strncpy(series, token, 3);
+    strncpy(number, &token[3], 5);
+    series[3] = '\0';
+    number[5] = '\0';
+    rec->id.identity_number = atoi(number);
+
+    //record_print(&ret);
+
+    return 0;
+}
+
+int file_print(struct file *file) {
+    printf("--- main file section ---\n");
+
+
+    printf("--- overflow file section ---\n");
+    
+    for(int i = 0; i < file->num_overflow_records; i++) {
+        record_print(file->overflow[i]);
+    }
 
     return 0;
 }

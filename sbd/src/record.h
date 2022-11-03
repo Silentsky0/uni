@@ -2,7 +2,7 @@
 #define RECORD_H
 
 struct id {
-    const char *identity_series;
+    char identity_series[4];
     int identity_number;
 } __attribute__((__packed__));
 
@@ -19,5 +19,6 @@ struct record {
 
 int record_compare(struct record* r1, struct record* r2);
 const char *record_to_string(struct record* r);
+void record_print(struct record r);
 
 #endif // RECORD_H
