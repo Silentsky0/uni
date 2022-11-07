@@ -2,7 +2,7 @@
 #define RECORD_H
 
 struct id {
-    char identity_series[4];
+    char *identity_series;
     int identity_number;
 } __attribute__((__packed__));
 

@@ -65,15 +65,15 @@ int file_import( struct file *file, const char* import_path) {
 }
 
 // TODO may be in utils
-int str_to_record(struct record *rec, char* str){
+struct record str_to_record(char* str){
 
-
+    struct record ret;
 
     char * token = strtok(str, " ");
-    rec->data.name = token;
+    ret.data.name = token;
 
     token = strtok(NULL, " ");
-    rec->data.surname = token;
+    ret.data.surname = token;
 
     token = strtok(NULL, " ");
     char series[4];
@@ -82,16 +82,22 @@ int str_to_record(struct record *rec, char* str){
     strncpy(number, &token[3], 5);
     series[3] = '\0';
     number[5] = '\0';
-    rec->id.identity_number = atoi(number);
-
+    ret.id.identity_number = atoi(number);
+    ret.id.identity_series[0] = 'a';
+    ret.id.identity_series[1] = 'b';
+    ret.id.identity_series[2] = 'c';
+    ret.id.identity_series[3] = '\0';
     //record_print(&ret);
 
-    return 0;
+    return ret;
 }
 
 int file_print(struct file *file) {
     printf("--- main file section ---\n");
 
+    for(int i = 0; i < file->num_overflow_records; i++) {
+        record_print(file->records[i]);
+    }
 
     printf("--- overflow file section ---\n");
     

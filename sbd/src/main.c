@@ -16,7 +16,7 @@ int main () {
     if (status < 0)
         printf("error importing records from file, error code %d", status);
 
-    file_print(&file);
+    //file_print(&file);
 
     return 0;
 }

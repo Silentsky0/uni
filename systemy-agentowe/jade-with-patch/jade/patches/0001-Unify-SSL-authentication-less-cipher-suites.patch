@@ -1,0 +1,54 @@
+0001-Unify-SSL-authentication-less-cipher-suites.patch by <kontakt@asie.pl>
+
+JADE has two codepaths for usage of SSL sockets with authentication disabled:
+one in JICPSConnection and one in JICPSPeer. The latter, having not been
+maintained in some time, uses an outdated cipher suite no longer supported by
+the Java Runtime Environment. This code unifies the two codepaths to use the
+same set of cipher suites and adds a "-Djade.imtp.leap.useLegacyCipherSuites"
+option to revert back to the legacy cipher suite if necessary.
+
+diff -ur src-orig/jade/src/jade/imtp/leap/JICP/JICPSPeer.java src/jade/src/jade/imtp/leap/JICP/JICPSPeer.java
+--- src-orig/jade/src/jade/imtp/leap/JICP/JICPSPeer.java	2010-04-16 09:30:12.000000000 +0200
++++ src/jade/src/jade/imtp/leap/JICP/JICPSPeer.java	2018-10-22 11:22:45.566558053 +0200
+@@ -214,13 +214,7 @@
+ 
+ 		// Initialize the SSLServerSocket to disable authentication
+ 		try {
+-			sss.setEnabledCipherSuites(new String[] {"SSL_DH_anon_WITH_RC4_128_MD5"});
+-
+-			String[] ecs = sss.getEnabledCipherSuites();
+-			//DEBUG
+-			//for (int i=0; i<ecs.length; i++) { 
+-			//	System.out.println("--"+i+"-- "+ecs[i]);
+-			//}
++			sss.setEnabledCipherSuites(SSLHelper.getSupportedKeys());
+ 		}
+ 		catch (Exception e) {
+ 			throw new ICPException("Error enabling cypher suites.", e);
+diff -ur src-orig/jade/src/jade/imtp/leap/SSLHelper.java src/jade/src/jade/imtp/leap/SSLHelper.java
+--- src-orig/jade/src/jade/imtp/leap/SSLHelper.java	2017-03-22 10:12:12.000000000 +0100
++++ src/jade/src/jade/imtp/leap/SSLHelper.java	2018-10-22 11:27:08.914561167 +0200
+@@ -21,17 +21,21 @@
+  * @author eduard
+  */
+ public class SSLHelper {
++	private static final String legacyCipherSuiteProperty = "jade.imtp.leap.useLegacyCipherSuites";
+ 
+ 	/**
+ 	 * use this to indicate which cipher suites we support
+ 	 */
+ 	public static final List supportedKeys =
+-		Collections.unmodifiableList(Arrays.asList(new String[] {"TLS_ECDH_anon_WITH_AES_128_CBC_SHA"}));
++			System.getProperty(legacyCipherSuiteProperty) != null
++					&& Boolean.parseBoolean(System.getProperty(legacyCipherSuiteProperty))
++					? Collections.unmodifiableList(Arrays.asList(new String[] {"SSL_DH_anon_WITH_RC4_128_MD5"}))
++					: Collections.unmodifiableList(Arrays.asList(new String[] {"TLS_ECDH_anon_WITH_AES_128_CBC_SHA"}));
+ 
+ 	public static String[] getSupportedKeys() {
+ 		return (String[]) supportedKeys.toArray(new String[0]);
+ 	}
+-	
++
+ 	private static Logger logger = Logger.getJADELogger(SSLHelper.class.getName());
+ 
+ 	private SSLHelper() {
