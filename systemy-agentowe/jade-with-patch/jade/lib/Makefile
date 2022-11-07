@@ -1,9 +1,11 @@
 
 help:
 	@echo "available commands:"
-	@echo "gen-keys"
-	@echo "export-certs"
-	@echo "main-container" 
+	@echo "		gen-keys"
+	@echo "		export-certs"
+	@echo "		import-certs name='certificate name'"
+	@echo "		main-container" 
+	@echo "		backup-container"
 
 gen-keys:
 	keytool -genkey -alias cichy -keyalg RSA -keystore cichy.jks -keypass keypass123 -storepass storepass123 -dname "CN=Giada,OU=JADE,O=FooBarLtd,L=Naples,ST=na,C=IT"
@@ -28,3 +30,14 @@ main-container:
 	-services jade.core.replication.MainReplicationService\; \
 	jade.core.replication.AddressNotificationService
 
+backup-container:
+	java \
+	-Djavax.net.ssl.keyStore=cichy.jks \
+	-Djavax.net.ssl.keyStorePassword=storepass123 \
+	-Djavax.net.ssl.trustStore=cichy-ca.jks \
+	-cp jade.jar jade.Boot \
+	-host 25.36.78.210­ -port 5656 \
+	-local-host -local-port 4646 \
+	-name cichy -container-name cichy-backup-container \
+	-container -backupmain \
+	-services jade.core.replication.MainReplicationService
