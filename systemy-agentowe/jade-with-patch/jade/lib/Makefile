@@ -90,6 +90,14 @@ main-container-lab-1:
 	-services jade.core.replication.MainReplicationService\; \
 	jade.core.replication.AddressNotificationService
 
+federated-container-lab-1:
+	java -cp jade.jar jade.Boot \
+	-host 192.168.31.224 -port 5656 \
+	-local-host 192.168.31.152 -local-port 4646 \
+	-gui \
+	-container -container-name cichy-2 \
+	-services jade.core.replication.AddressNotificationService
+
 clean:
 	rm -f $(FILES)
 
