@@ -1,4 +1,4 @@
-FILES = cichy.jks cichy-ca.jks main-cichy.cer
+FILES = cichy.jks cichy-ca.jks main-cichy.cer cichy.cer 
 
 help:
 	@echo "available commands:"
@@ -9,13 +9,25 @@ help:
 	@echo "		backup-container"
 
 gen-keys:
-	keytool -genkeypair -keyalg RSA -alias cichy -keystore cichy.jks -keypass keypass123 -storepass storepass123 -dname "CN=Giada,OU=JADE,O=FooBarLtd,L=Naples,ST=na,C=IT"
+	keytool -genkeypair -keyalg RSA \
+	-alias cichy \
+	-keystore cichy.jks \
+	-keypass storepass123 -storepass storepass123 \
+	-dname "CN=cichy,OU=Esovisco,O=FooBarLtd,L=Gdansk,S=pomorskie,C=PL"
 
 export-certs:
-	keytool -export -keystore cichy.jks -storepass storepass123 -alias cichy -rfc -file main-cichy.cer
+	keytool -export -rfc \
+	-keystore cichy.jks \
+	-storepass storepass123 \
+	-alias cichy \
+	-file cichy.cer
 
 import-keys:
-	keytool -import -keystore cichy-ca.jks -storepass storepass123 -alias ziemiec -file main-ziemiec.cer -noprompt
+	keytool -import -noprompt \
+	-keystore cichy-ca.jks \
+	-storepass storepass123 \
+	-alias ziemiec \
+	-file ziemiec.cer
 
 main-container:
 	java \
@@ -23,13 +35,15 @@ main-container:
 	-Djavax.net.ssl.keyStorePassword=storepass123 \
 	-Djavax.net.ssl.trustStore=cichy-ca.jks \
 	-cp jade.jar jade.Boot \
-	-host 25.36.78.210­ -port 5656 \
-	-local-host 25.36.78.210 -local-port 5656 \
+	-host 192.168.31.224 -port 5656 \
+	-local-host 192.168.31.224 -local-port 5656 \
 	-gui \
-	-name cichy-host -container-name cichy \
+	-name cichy -container-name cichy \
 	-nomtp -icps jade.imtp.leap.JICP.JICPSPeer \
-	-services jade.core.replication.MainReplicationService\; \
-	jade.core.replication.AddressNotificationService
+	-services jade.core.replication.MainReplicationService\;\
+	jade.core.replication.AddressNotificationService\;\
+	jade.core.event.NotificationService\;\
+	jade.core.mobility.AgentMobilityService\;\
 
 main-container-not-secure:
 	java \
@@ -69,8 +83,8 @@ federated-container:
 
 main-container-lab-1:
 	java -cp jade.jar jade.Boot \
-	-host 25.36.78.210 -port 5656 \
-	-local-host 25.36.78.210 -local-port 5656 \
+	-host 192.168.31.224 -port 5656 \
+	-local-host 192.168.31.224 -local-port 5656 \
 	-gui \
 	-name cichy-host -container-name cichy \
 	-services jade.core.replication.MainReplicationService\; \
