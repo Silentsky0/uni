@@ -4,7 +4,7 @@
 #include <memory.h>
 #include "common/status.h"
 
-int str_to_record(struct record *rec, char* str);
+//int str_to_record(struct record *rec, char *str);
 
 void file_init(struct file* file) {
     file->num_records = 0;
@@ -43,7 +43,7 @@ int file_import( struct file *file, const char* import_path) {
 
     char *line = NULL;
     size_t len = 0;
-    ssize_t read;
+    size_t read;
 
 
     fp = fopen(import_path, "r");
@@ -52,7 +52,7 @@ int file_import( struct file *file, const char* import_path) {
 
     while ((read = getline(&line, &len, fp)) != -1) {
         struct record record_to_add;
-        str_to_record(&record_to_add, line);
+        //str_to_record(&record_to_add, line);
         record_print(record_to_add);
         file_append_record(file, &record_to_add);
     }
@@ -65,32 +65,32 @@ int file_import( struct file *file, const char* import_path) {
 }
 
 // TODO may be in utils
-struct record str_to_record(char* str){
+// struct record str_to_record(char* rec, char* str){
 
-    struct record ret;
+//     struct record ret;
 
-    char * token = strtok(str, " ");
-    ret.data.name = token;
+//     char * token = strtok(str, " ");
+//     ret.data.name = token;
 
-    token = strtok(NULL, " ");
-    ret.data.surname = token;
+//     token = strtok(NULL, " ");
+//     ret.data.surname = token;
 
-    token = strtok(NULL, " ");
-    char series[4];
-    char number[6];
-    strncpy(series, token, 3);
-    strncpy(number, &token[3], 5);
-    series[3] = '\0';
-    number[5] = '\0';
-    ret.id.identity_number = atoi(number);
-    ret.id.identity_series[0] = 'a';
-    ret.id.identity_series[1] = 'b';
-    ret.id.identity_series[2] = 'c';
-    ret.id.identity_series[3] = '\0';
-    //record_print(&ret);
+//     token = strtok(NULL, " ");
+//     char series[4];
+//     char number[6];
+//     strncpy(series, token, 3);
+//     strncpy(number, &token[3], 5);
+//     series[3] = '\0';
+//     number[5] = '\0';
+//     ret.id.identity_number = atoi(number);
+//     ret.id.identity_series[0] = 'a';
+//     ret.id.identity_series[1] = 'b';
+//     ret.id.identity_series[2] = 'c';
+//     ret.id.identity_series[3] = '\0';
+//     //record_print(&ret);
 
-    return ret;
-}
+//     return ret;
+// }
 
 int file_print(struct file *file) {
     printf("--- main file section ---\n");
