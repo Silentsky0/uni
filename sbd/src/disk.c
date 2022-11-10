@@ -2,14 +2,11 @@
 #include "common/status.h"
 #include "record.h"
 #include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
 
-int write_block(FILE **file, int index, struct block *block);
+#include <time.h>
 
 int disk_generate_random(const char *path, int number_of_records)
 {
-    srand(time(NULL));
     unique_random_numbers(number_of_records);
 
     FILE *file = fopen(path, "wb");
@@ -23,7 +20,7 @@ int disk_generate_random(const char *path, int number_of_records)
 
     for (int i = 0; i < blocks_to_generate; i++) {
         for (int j = 0; j < RECORDS_IN_BLOCK; j++) {
-            random_record(&new_record);
+            generate_random_record(&new_record);
             new_block.records[j] = new_record;
         }
 
@@ -40,12 +37,12 @@ int disk_generate_random(const char *path, int number_of_records)
     int leftover_records = number_of_records - blocks_to_generate * RECORDS_IN_BLOCK;
 
     for (int i = 0; i < leftover_records; i++) {
-        random_record(&new_record);
+        generate_random_record(&new_record);
         leftover_block.records[i] = new_record;
     }
     // fill the block with incorrect records
     for (int i = leftover_records; i < RECORDS_IN_BLOCK; i++) {
-        incorrect_record(&new_record);
+        generate_incorrect_record(&new_record);
         leftover_block.records[i] = new_record;
     }
     // padding
@@ -61,12 +58,35 @@ int disk_generate_random(const char *path, int number_of_records)
 }
 
 int write_block(FILE **file, int index, struct block *block) {
-    fseek(*file, index * BLOCK_SIZE, 0);
-
-    int status = fwrite((void *) block, BLOCK_SIZE, 1, *file);
-
-    if (status < 1)
+    int status = fseek(*file, index * BLOCK_SIZE, 0);
+    if (status != 0) {
+        printf("%s fseek error\n", __func__);
         return -EIO;
+    }
+
+    status = fwrite((void *) block, BLOCK_SIZE, 1, *file);
+    if (status < 1) {
+        printf("%s fwrite error\n", __func__);
+        return -EIO;
+    }
+
     
+    return 0;
+}
+
+int read_block(FILE **file, int index, struct block *block) {
+
+    int status = fseek(*file, index * BLOCK_SIZE, 0);
+    if (status != 0) {
+        printf("%s fseek error\n", __func__);
+        return -EIO;
+    }
+
+    status = fread((void *) block, BLOCK_SIZE, 1, *file);
+    if (status < 1) {
+        printf("%s fread error\n", __func__);
+        return -EIO;
+    }
+
     return 0;
 }

@@ -23,9 +23,9 @@ struct record {
 
 int record_compare(struct record* r1, struct record* r2);
 const char *record_to_string(struct record* r);
-void record_print(struct record r);
-void random_record(struct record *r);
-void incorrect_record(struct record *r);
+void record_print(struct record *r);
+void generate_random_record(struct record *r);
+void generate_incorrect_record(struct record *r);
 void unique_random_numbers(int to_generate);
 
 #endif // RECORD_H

@@ -41,6 +41,12 @@ void unique_random_numbers(int to_generate) {
 }
 
 int record_compare(struct record* r1, struct record* r2) {
+    int result;
+
+    if ((result = strcmp(r1->id.identity_series, r1->id.identity_series)) != 0) {
+        return result;
+    }
+
     return r1->id.identity_number > r2->id.identity_number;
 }
 
@@ -48,13 +54,31 @@ const char * record_to_string(struct record *r) {
     return strcat("record ", r->data.name);
 }
 
-void record_print(struct record r) {
+void record_print(struct record *r) {
     printf("--- Record ---\n");
-    printf("    id = %s%d\n", r.id.identity_series, r.id.identity_number);
-    printf("    name = %s %s\n\n", r.data.name, r.data.surname);
+    if (r->id.identity_number < 10) {
+        printf("    id = %s0000%d", r->id.identity_series, r->id.identity_number);
+        goto name;
+    }
+    if (r->id.identity_number < 100) {
+        printf("    id = %s000%d", r->id.identity_series, r->id.identity_number);
+        goto name;
+    }
+    if (r->id.identity_number < 1000) {
+        printf("    id = %s00%d", r->id.identity_series, r->id.identity_number);
+        goto name;
+    }
+    if (r->id.identity_number < 10000) {
+        printf("    id = %s0%d", r->id.identity_series, r->id.identity_number);
+        goto name;
+    }
+    printf("    id = %s%d", r->id.identity_series, r->id.identity_number);
+
+name:
+    printf("    name = %s %s\n\n", r->data.name, r->data.surname);
 }
 
-void random_record(struct record *r) {
+void generate_random_record(struct record *r) {
 
     static int generated_id_index = 0;
 
@@ -73,7 +97,7 @@ void random_record(struct record *r) {
     generated_id_index += 1;
 }
 
-void incorrect_record(struct record *r) {
+void generate_incorrect_record(struct record *r) {
     strcpy(r->id.identity_series, "---");
     r->id.identity_number = -1;
 
