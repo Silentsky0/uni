@@ -9,7 +9,7 @@ help:
 	@echo "		backup-container"
 
 gen-keys:
-	keytool -genkeypair -keyalg RSA \
+	keytool -genkeypair -keyalg RSA -storetype jks \
 	-alias cichy \
 	-keystore cichy.jks \
 	-keypass storepass123 -storepass storepass123 \
@@ -23,7 +23,7 @@ export-certs:
 	-file cichy.cer
 
 import-keys:
-	keytool -import -noprompt \
+	keytool -import -noprompt -storetype jks \
 	-keystore cichy-ca.jks \
 	-storepass storepass123 \
 	-alias ziemiec \
@@ -31,15 +31,11 @@ import-keys:
 
 main-container:
 	java \
-	-Djavax.net.ssl.keyStore=cichy.jks \
-	-Djavax.net.ssl.keyStorePassword=storepass123 \
-	-Djavax.net.ssl.trustStore=cichy-ca.jks \
 	-cp jade.jar jade.Boot \
 	-host 192.168.31.224 -port 5656 \
 	-local-host 192.168.31.224 -local-port 5656 \
 	-gui \
 	-name cichy -container-name cichy \
-	-nomtp -icps jade.imtp.leap.JICP.JICPSPeer \
 	-services jade.core.replication.MainReplicationService\;\
 	jade.core.replication.AddressNotificationService\;\
 	jade.core.event.NotificationService\;\
