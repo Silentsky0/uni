@@ -40,6 +40,12 @@ void unique_random_numbers(int to_generate) {
     }
 }
 
+/*
+ * 0 if records are identical
+ * positive value if r1 is greater
+ * negative value if r2 is greater
+ * value indicates difference between the two
+ */
 int record_compare(struct record* r1, struct record* r2) {
     int result;
 
@@ -47,7 +53,7 @@ int record_compare(struct record* r1, struct record* r2) {
         return result;
     }
 
-    return r1->id.identity_number > r2->id.identity_number;
+    return r1->id.identity_number - r2->id.identity_number;
 }
 
 const char * record_to_string(struct record *r) {
@@ -55,27 +61,31 @@ const char * record_to_string(struct record *r) {
 }
 
 void record_print(struct record *r) {
-    printf("--- Record ---\n");
+    if (r->id.identity_number < 0) {
+        printf ("  empty record\n");
+        return;
+    }
+
     if (r->id.identity_number < 10) {
-        printf("    id = %s0000%d", r->id.identity_series, r->id.identity_number);
+        printf("  id = %s0000%d", r->id.identity_series, r->id.identity_number);
         goto name;
     }
     if (r->id.identity_number < 100) {
-        printf("    id = %s000%d", r->id.identity_series, r->id.identity_number);
+        printf("  id = %s000%d", r->id.identity_series, r->id.identity_number);
         goto name;
     }
     if (r->id.identity_number < 1000) {
-        printf("    id = %s00%d", r->id.identity_series, r->id.identity_number);
+        printf("  id = %s00%d", r->id.identity_series, r->id.identity_number);
         goto name;
     }
     if (r->id.identity_number < 10000) {
-        printf("    id = %s0%d", r->id.identity_series, r->id.identity_number);
+        printf("  id = %s0%d", r->id.identity_series, r->id.identity_number);
         goto name;
     }
-    printf("    id = %s%d", r->id.identity_series, r->id.identity_number);
+    printf("  id = %s%d", r->id.identity_series, r->id.identity_number);
 
 name:
-    printf("    name = %s %s\n\n", r->data.name, r->data.surname);
+    printf("  name = %s %s\n", r->data.name, r->data.surname);
 }
 
 void generate_random_record(struct record *r) {

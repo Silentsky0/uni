@@ -21,6 +21,8 @@ int main () {
 
     disk_generate_random("data/generated.file", 10);
 
+    disk_print_file("data/generated.file");
+
     //file_print(&file);
 
     return 0;

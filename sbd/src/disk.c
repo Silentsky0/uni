@@ -57,16 +57,23 @@ int disk_generate_random(const char *path, int number_of_records)
 
 }
 
+int file_size(FILE **file) {
+    fseek(*file, 0L, SEEK_END);
+    int size = (int) ftell(*file);
+    rewind(*file);
+    return size;
+} 
+
 int write_block(FILE **file, int index, struct block *block) {
     int status = fseek(*file, index * BLOCK_SIZE, 0);
     if (status != 0) {
-        printf("%s fseek error\n", __func__);
+        printf("%s: fseek error\n", __func__);
         return -EIO;
     }
 
     status = fwrite((void *) block, BLOCK_SIZE, 1, *file);
     if (status < 1) {
-        printf("%s fwrite error\n", __func__);
+        printf("%s: fwrite error\n", __func__);
         return -EIO;
     }
 
@@ -78,15 +85,45 @@ int read_block(FILE **file, int index, struct block *block) {
 
     int status = fseek(*file, index * BLOCK_SIZE, 0);
     if (status != 0) {
-        printf("%s fseek error\n", __func__);
+        printf("%s: fseek error\n", __func__);
         return -EIO;
     }
 
     status = fread((void *) block, BLOCK_SIZE, 1, *file);
     if (status < 1) {
-        printf("%s fread error\n", __func__);
+        printf("%s: fread error\n", __func__);
         return -EIO;
     }
 
     return 0;
+}
+
+void print_block(FILE **file, int index) {
+
+    struct block block_to_read;
+
+    int status = read_block(file, index, &block_to_read);
+    if (status < 0) {
+        printf("%s: error reading block", __func__);
+    }
+
+    printf(" Block %d\n", index);
+    for (int i = 0; i < RECORDS_IN_BLOCK; i++) {
+        printf(" ");
+        record_print(&block_to_read.records[i]);
+    }
+
+}
+
+void disk_print_file(const char *path) {
+    FILE *file = fopen(path, "rb");
+    if (file == NULL) {
+        printf("%s: file %s doesn't exist\n", __func__, path);
+        return;
+    }
+
+    printf("%s:\n", path);
+    for (int i = 0; i < file_size(&file) / BLOCK_SIZE; i++) {
+        print_block(&file, i);
+    }
 }
