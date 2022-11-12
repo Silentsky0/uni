@@ -8,22 +8,9 @@ struct record test_record(void);
 
 int main () {
 
-    struct file file;
-
-    file_init(&file);
-
-    //int status = file_import(&file, "./data/5-people.file");
-
-    //if (status < 0)
-    //    printf("error importing records from file, error code %d", status);
-
-    //random_record(NULL);
-
     disk_generate_random("data/generated.file", 10);
 
     disk_print_file("data/generated.file");
-
-    //file_print(&file);
 
     return 0;
 }

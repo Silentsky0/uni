@@ -6,63 +6,63 @@
 
 //int str_to_record(struct record *rec, char *str);
 
-void file_init(struct file* file) {
-    file->num_records = 0;
-    file->num_overflow_records = 0;
-    file->records = NULL;
-    file->overflow = malloc(100 * sizeof(struct record)); // TODO fix simplified version
-    file->ov_start = file->overflow;
-}
+// void file_init(struct file* file) {
+//     file->num_records = 0;
+//     file->num_overflow_records = 0;
+//     file->records = NULL;
+//     file->overflow = malloc(100 * sizeof(struct record)); // TODO fix simplified version
+//     file->ov_start = file->overflow;
+// }
 
-int file_append_record(struct file *file, struct record *record) {
+// int file_append_record(struct file *file, struct record *record) {
 
-    memcpy((void *)file->ov_start, (void *)record, sizeof(struct record));
+//     memcpy((void *)file->ov_start, (void *)record, sizeof(struct record));
 
-    printf("%p %p\n", file->ov_start, record);
+//     printf("%p %p\n", file->ov_start, record);
 
-    char *byte = (char *)record;
-    for (int i = 0; i < 32; i++) {
-        printf("%d\n", *byte);
-        byte++;
-    }
+//     char *byte = (char *)record;
+//     for (int i = 0; i < 32; i++) {
+//         printf("%d\n", *byte);
+//         byte++;
+//     }
 
-    //memcpy(file->ov_start, (void *)&record, sizeof(struct record));
-    file->ov_start += sizeof(struct record);
-    file->records += 1;
+//     //memcpy(file->ov_start, (void *)&record, sizeof(struct record));
+//     file->ov_start += sizeof(struct record);
+//     file->records += 1;
 
-    record_print(*record);
+//     record_print(*record);
 
-    free(record);
+//     free(record);
 
-    return 0;
-}
+//     return 0;
+// }
 
-int file_import( struct file *file, const char* import_path) {
+// int file_import( struct file *file, const char* import_path) {
 
-    FILE *fp;
+//     FILE *fp;
 
-    char *line = NULL;
-    size_t len = 0;
-    size_t read;
+//     char *line = NULL;
+//     size_t len = 0;
+//     size_t read;
 
 
-    fp = fopen(import_path, "r");
-    if (fp == NULL)
-        return -EIO;
+//     fp = fopen(import_path, "r");
+//     if (fp == NULL)
+//         return -EIO;
 
-    while ((read = getline(&line, &len, fp)) != -1) {
-        struct record record_to_add;
-        //str_to_record(&record_to_add, line);
-        record_print(record_to_add);
-        file_append_record(file, &record_to_add);
-    }
+//     while ((read = getline(&line, &len, fp)) != -1) {
+//         struct record record_to_add;
+//         //str_to_record(&record_to_add, line);
+//         record_print(record_to_add);
+//         file_append_record(file, &record_to_add);
+//     }
 
-    fclose(fp);
-    if (line)
-        free(line);
+//     fclose(fp);
+//     if (line)
+//         free(line);
 
-    return 0;
-}
+//     return 0;
+// }
 
 // TODO may be in utils
 // struct record str_to_record(char* rec, char* str){
@@ -92,18 +92,18 @@ int file_import( struct file *file, const char* import_path) {
 //     return ret;
 // }
 
-int file_print(struct file *file) {
-    printf("--- main file section ---\n");
+// int file_print(struct file *file) {
+//     printf("--- main file section ---\n");
 
-    for(int i = 0; i < file->num_overflow_records; i++) {
-        record_print(file->records[i]);
-    }
+//     for(int i = 0; i < file->num_overflow_records; i++) {
+//         record_print(file->records[i]);
+//     }
 
-    printf("--- overflow file section ---\n");
+//     printf("--- overflow file section ---\n");
     
-    for(int i = 0; i < file->num_overflow_records; i++) {
-        record_print(file->overflow[i]);
-    }
+//     for(int i = 0; i < file->num_overflow_records; i++) {
+//         record_print(file->overflow[i]);
+//     }
 
-    return 0;
-}
+//     return 0;
+// }

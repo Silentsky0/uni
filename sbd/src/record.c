@@ -6,12 +6,23 @@
 #include <time.h>
 #include <stdlib.h>
 
+#define RANDOM_NAMES_NUM 20
+#define RANDOM_MALE_SURNAMES_NUM 10
+#define RANDOM_FEMALE_SURNAMES_NUM 10
+
 int generated_ids[MAX_RANDOM_IDS];
 int generated_ids_number = 0;
 
 char random_letter() {
     return (char) 'A' + (rand() % 26);
 }
+
+const char *random_names[RANDOM_NAMES_NUM] = {"Maurycy","Alfred","Hubert","Konrad","Krzysztof","Paweł","Krystian","Fryderyk","Heronim","Adam","Maria","Beata","Agnieszka","Katarzyna","Jagoda","Martyna","Aleksandra","Julia","Klara","Weronika",
+};
+const char *random_male_surnames[RANDOM_MALE_SURNAMES_NUM] = {"Maciejewski","Szulc","Zieliński","Jaworski","Piotrowski","Czerwiński","Cieślak","Szymański","Kaczmarczyk","Kamiński",
+};
+const char *random_female_surnames[RANDOM_FEMALE_SURNAMES_NUM] = {"Baran","Kowalska","Woźniak","Piotrowska","Zalewska","Zawadzka","Lewandowska","Witkowska","Urbańska","Szulc",
+};
 
 /*
  * Unique random numbers with 5 digits
@@ -99,8 +110,23 @@ void generate_random_record(struct record *r) {
         r->id.identity_series[i] = random_letter();
     }
 
-    strcpy(r->data.name, "random_name"); // TODO random names
-    strcpy(r->data.surname, "random_surname"); // TODO random surnames
+    int random_name_index = rand() % RANDOM_NAMES_NUM;
+    strcpy(r->data.name, random_names[random_name_index]);
+
+    // random name is male
+    if (random_name_index < RANDOM_NAMES_NUM - RANDOM_FEMALE_SURNAMES_NUM) {
+        int random_surname_index = rand() % RANDOM_MALE_SURNAMES_NUM;
+
+        strcpy(r->data.surname, random_male_surnames[random_surname_index]);
+    }
+    else {
+        int random_surname_index = rand() % RANDOM_FEMALE_SURNAMES_NUM;
+
+        strcpy(r->data.surname, random_female_surnames[random_surname_index]);
+    }
+
+
+
 
     r->data.age = rand() % 100;
 
