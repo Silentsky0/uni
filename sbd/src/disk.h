@@ -11,6 +11,10 @@ struct block {
     char padding[BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record)];
 } __attribute__((__packed__));
 
+int disk_open_file(FILE **file, const char *path);
+void disk_close_file(FILE **file);
+int disk_get_next_record(FILE **file, struct record *record);
+
 int write_block(FILE **file, int index, struct block *block);
 int read_block(FILE **file, int index, struct block *block);
 

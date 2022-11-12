@@ -2,8 +2,38 @@
 #include "common/status.h"
 #include "record.h"
 #include <stdlib.h>
-
 #include <time.h>
+#include <memory.h>
+
+int file_size(FILE **file);
+
+int next_record_init = 0; // bool value
+static int get_next_record_index;
+static int get_next_block_index;
+
+struct block *static_block;
+
+int disk_open_file(FILE **file, const char *path) {
+    *file = fopen(path, "rb");
+    if (*file == NULL) {
+        printf("%s: file %s doesn't exist\n", __func__, path);
+        return -EIO;
+    }
+
+    next_record_init = 1;
+    get_next_record_index = 0;
+    get_next_block_index = 0;
+
+    static_block = malloc(sizeof(struct block));
+
+    return 0;
+}
+
+void disk_close_file(FILE **file) {
+    next_record_init = 0;
+    free(static_block);
+    fclose(*file);
+}
 
 int disk_generate_random(const char *path, int number_of_records)
 {
@@ -59,6 +89,39 @@ int disk_generate_random(const char *path, int number_of_records)
     return 0;
 }
 
+/*
+ * Get next record from file
+ *
+ * Record that was read is placed in *record
+ * Returns ENOFILE (-4) when end of file is reached
+ */
+int disk_get_next_record(FILE **file, struct record *record) {
+
+    if (get_next_block_index == file_size(file) / BLOCK_SIZE) {
+        printf("%s: end of file reached\n", __func__); // TODO remove this message
+        return -ENOFILE;
+    }
+
+    if (get_next_record_index == 0) {
+        int status = read_block(file, get_next_block_index, static_block);
+        if (status < 0) {
+            printf("%s: some error reading block\n", __func__);
+            return status;
+        }
+    }
+
+    memcpy(record, &static_block->records[get_next_record_index], sizeof(struct record));
+
+    get_next_record_index += 1;
+    if (get_next_record_index == RECORDS_IN_BLOCK) {
+        get_next_block_index += 1;
+        get_next_record_index = 0;
+    }
+        
+
+    return 1;
+}
+
 int file_size(FILE **file) {
     fseek(*file, 0L, SEEK_END);
     int size = (int) ftell(*file);
@@ -106,26 +169,25 @@ void print_block(FILE **file, int index) {
 
     int status = read_block(file, index, &block_to_read);
     if (status < 0) {
-        printf("%s: error reading block", __func__);
+        printf("%s: error reading block\n", __func__);
     }
 
     printf(" Block %d\n", index);
     for (int i = 0; i < RECORDS_IN_BLOCK; i++) {
         printf(" ");
-        record_print(&block_to_read.records[i], RECORD_PRINT_ID);
+        record_print(&block_to_read.records[i], RECORD_PRINT_ID | RECORD_PRINT_NAME | RECORD_PRINT_EMPTY_RECORDS);
     }
 
 }
 
 void disk_print_file(const char *path) {
-    FILE *file = fopen(path, "rb");
-    if (file == NULL) {
-        printf("%s: file %s doesn't exist\n", __func__, path);
-        return;
-    }
+    FILE *file;
+    disk_open_file(&file, path);
 
     printf("%s:\n", path);
     for (int i = 0; i < file_size(&file) / BLOCK_SIZE; i++) {
         print_block(&file, i);
     }
+
+    disk_close_file(&file);
 }

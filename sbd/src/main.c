@@ -3,12 +3,13 @@
 #include "common/status.h"
 #include <stdio.h>
 #include "disk.h"
+#include "sort.h"
 
 int main () {
 
-    disk_generate_random("data/generated.file", 30);
+    disk_generate_random("data/generated.file", 20);
 
-    disk_print_file("data/generated.file");
+    sort_distribution_phase("data/generated.file");
 
     return 0;
 }

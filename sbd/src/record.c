@@ -71,11 +71,18 @@ const char * record_to_string(struct record *r) {
     return strcat("record ", r->data.name);
 }
 
+int record_is_empty(struct record *r) {
+    return r->id.identity_number < 0;
+}
+
 void record_print(struct record *r, char flags) {
-    if (r->id.identity_number < 0) {
+    if (record_is_empty(r) && flags & RECORD_PRINT_EMPTY_RECORDS) {
         printf ("  empty record\n");
         return;
     }
+
+    if (record_is_empty(r))
+        return;
 
     if (!flags & RECORD_PRINT_ID)
         goto name;
