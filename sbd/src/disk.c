@@ -32,29 +32,31 @@ int disk_generate_random(const char *path, int number_of_records)
         write_block(&file, i, &new_block);
     }
 
-    // block with some number of records that do not fill the whole block
-    struct block leftover_block;
+    // some number of records that do not fill the whole block
     int leftover_records = number_of_records - blocks_to_generate * RECORDS_IN_BLOCK;
 
-    for (int i = 0; i < leftover_records; i++) {
-        generate_random_record(&new_record);
-        leftover_block.records[i] = new_record;
+    if (leftover_records > 0) {
+        struct block leftover_block;
+
+        for (int i = 0; i < leftover_records; i++) {
+            generate_random_record(&new_record);
+            leftover_block.records[i] = new_record;
+        }
+        // fill the block with incorrect records
+        for (int i = leftover_records; i < RECORDS_IN_BLOCK; i++) {
+            generate_incorrect_record(&new_record);
+            leftover_block.records[i] = new_record;
+        }
+        // padding
+        for (int byte = 0; byte < BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record); byte++) {
+            leftover_block.padding[byte] = -1;
+        }
+        write_block(&file, blocks_to_generate, &leftover_block);
     }
-    // fill the block with incorrect records
-    for (int i = leftover_records; i < RECORDS_IN_BLOCK; i++) {
-        generate_incorrect_record(&new_record);
-        leftover_block.records[i] = new_record;
-    }
-    // padding
-    for (int byte = 0; byte < BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record); byte++) {
-        leftover_block.padding[byte] = -1;
-    }
-    write_block(&file, blocks_to_generate, &leftover_block);
 
     fclose(file);
 
     return 0;
-
 }
 
 int file_size(FILE **file) {

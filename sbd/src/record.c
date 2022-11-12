@@ -125,9 +125,6 @@ void generate_random_record(struct record *r) {
         strcpy(r->data.surname, random_female_surnames[random_surname_index]);
     }
 
-
-
-
     r->data.age = rand() % 100;
 
     generated_id_index += 1;
@@ -137,7 +134,7 @@ void generate_incorrect_record(struct record *r) {
     strcpy(r->id.identity_series, "---");
     r->id.identity_number = -1;
 
-    for (int i = 0; i < NAME_CHAR_LENGTH; i++) {
+    for (int i = 0; i < NAME_MAX_LENGTH; i++) {
         r->data.name[i] = '0';
         r->data.surname[i] = '0';
     }

@@ -1,9 +1,10 @@
 #ifndef RECORD_H
 #define RECORD_H
 
-#include "common/config.h"
+#define NAME_MAX_LENGTH 32
 
-#define NAME_CHAR_LENGTH 32
+#define RECORD_PRINT_NAME 0001b
+#define RECORD_PRINT_SURNAME 0010b 
 
 struct id {
     char identity_series[4];
@@ -11,8 +12,8 @@ struct id {
 } __attribute__((__packed__));
 
 struct data {
-    char name[NAME_CHAR_LENGTH];
-    char surname[NAME_CHAR_LENGTH];
+    char name[NAME_MAX_LENGTH];
+    char surname[NAME_MAX_LENGTH];
     unsigned short age;
 } __attribute__((__packed__));
 
