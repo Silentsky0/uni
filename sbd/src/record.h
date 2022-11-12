@@ -3,8 +3,8 @@
 
 #define NAME_MAX_LENGTH 32
 
-#define RECORD_PRINT_NAME 0001b
-#define RECORD_PRINT_SURNAME 0010b 
+#define RECORD_PRINT_ID     0x1
+#define RECORD_PRINT_NAME   0x2 
 
 struct id {
     char identity_series[4];
@@ -24,7 +24,7 @@ struct record {
 
 int record_compare(struct record* r1, struct record* r2);
 const char *record_to_string(struct record* r);
-void record_print(struct record *r);
+void record_print(struct record *r, char flags);
 
 void generate_random_record(struct record *r);
 void generate_incorrect_record(struct record *r);

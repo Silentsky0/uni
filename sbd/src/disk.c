@@ -112,7 +112,7 @@ void print_block(FILE **file, int index) {
     printf(" Block %d\n", index);
     for (int i = 0; i < RECORDS_IN_BLOCK; i++) {
         printf(" ");
-        record_print(&block_to_read.records[i]);
+        record_print(&block_to_read.records[i], RECORD_PRINT_ID);
     }
 
 }

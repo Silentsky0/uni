@@ -71,11 +71,14 @@ const char * record_to_string(struct record *r) {
     return strcat("record ", r->data.name);
 }
 
-void record_print(struct record *r) {
+void record_print(struct record *r, char flags) {
     if (r->id.identity_number < 0) {
         printf ("  empty record\n");
         return;
     }
+
+    if (!flags & RECORD_PRINT_ID)
+        goto name;
 
     if (r->id.identity_number < 10) {
         printf("  id = %s0000%d", r->id.identity_series, r->id.identity_number);
@@ -96,7 +99,13 @@ void record_print(struct record *r) {
     printf("  id = %s%d", r->id.identity_series, r->id.identity_number);
 
 name:
-    printf("  name = %s %s\n", r->data.name, r->data.surname);
+
+    if (flags & RECORD_PRINT_NAME) {
+        printf("  name = %s %s\n", r->data.name, r->data.surname);
+    }
+    else {
+        printf("\n");
+    }
 }
 
 void generate_random_record(struct record *r) {
