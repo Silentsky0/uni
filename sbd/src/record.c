@@ -58,10 +58,17 @@ void unique_random_numbers(int to_generate) {
  * value indicates difference between the two
  */
 int record_compare(struct record* r1, struct record* r2) {
-    int result;
 
-    if ((result = strcmp(r1->id.identity_series, r1->id.identity_series)) != 0) {
-        return result;
+    if (record_is_empty(r2))
+        return 0;
+
+    int diff;
+
+    for (int i = 0; i < 4; i++) {
+        diff = (int) r1->id.identity_series[i] - (int) r2->id.identity_series[i];
+        
+        if (diff != 0)
+            return diff;
     }
 
     return r1->id.identity_number - r2->id.identity_number;
@@ -72,7 +79,7 @@ const char * record_to_string(struct record *r) {
 }
 
 int record_is_empty(struct record *r) {
-    return r->id.identity_number < 0;
+    return r->id.identity_number <= 0;
 }
 
 void record_print(struct record *r, char flags) {

@@ -5,34 +5,34 @@
 #include <time.h>
 #include <memory.h>
 
+
 int file_size(FILE **file);
 
-int next_record_init = 0; // bool value
-static int get_next_record_index;
-static int get_next_block_index;
 
-struct block *static_block;
+int disk_open_file(struct tape *tape, const char *mode) {
 
-int disk_open_file(FILE **file, const char *path) {
-    *file = fopen(path, "rb");
-    if (*file == NULL) {
-        printf("%s: file %s doesn't exist\n", __func__, path);
+    tape->file = fopen(tape->path, mode);
+    if (tape->file == NULL) {
+        printf("%s: file %s doesn't exist\n", __func__, tape->path);
         return -EIO;
     }
 
-    next_record_init = 1;
-    get_next_record_index = 0;
-    get_next_block_index = 0;
+    tape->num_records = 0;
+    tape->num_runs = 0;
+    tape->fib = 0;
 
-    static_block = malloc(sizeof(struct block));
+    buffer_init(&tape->buffer);
 
     return 0;
 }
 
-void disk_close_file(FILE **file) {
-    next_record_init = 0;
-    free(static_block);
-    fclose(*file);
+void disk_close_file(struct tape *tape) {
+
+    buffer_close(&tape->buffer);
+
+    // TODO write block if it contains some leftover records
+
+    fclose(tape->file);
 }
 
 int disk_generate_random(const char *path, int number_of_records)
@@ -95,31 +95,65 @@ int disk_generate_random(const char *path, int number_of_records)
  * Record that was read is placed in *record
  * Returns ENOFILE (-4) when end of file is reached
  */
-int disk_get_next_record(FILE **file, struct record *record) {
+int disk_get_next_record(struct tape *tape, struct record *record) {
 
-    if (get_next_block_index == file_size(file) / BLOCK_SIZE) {
+    struct buffer *buffer = &tape->buffer;
+
+    if (buffer->block_index == file_size(&tape->file) / BLOCK_SIZE) {
         printf("%s: end of file reached\n", __func__); // TODO remove this message
         return -ENOFILE;
     }
 
-    if (get_next_record_index == 0) {
-        int status = read_block(file, get_next_block_index, static_block);
+    if (buffer->record_index == 0) {
+        int status = read_block(&tape->file, buffer->block_index, buffer->block);
         if (status < 0) {
             printf("%s: some error reading block\n", __func__);
             return status;
         }
     }
 
-    memcpy(record, &static_block->records[get_next_record_index], sizeof(struct record));
+    memcpy(record, &buffer->block->records[buffer->record_index], sizeof(struct record));
 
-    get_next_record_index += 1;
-    if (get_next_record_index == RECORDS_IN_BLOCK) {
-        get_next_block_index += 1;
-        get_next_record_index = 0;
+    buffer->record_index += 1;
+    if (buffer->record_index == RECORDS_IN_BLOCK) {
+        buffer->block_index += 1;
+        buffer->record_index = 0;
     }
-        
 
     return 1;
+}
+
+
+/*
+ * Append record to file
+ *
+ * Record is placed 
+ */
+int disk_append_record(struct tape *tape, struct record *record) {
+    
+    struct buffer *buffer = &tape->buffer;
+
+    memcpy(&buffer->block->records[buffer->record_index], record, sizeof(struct record));
+
+    buffer->record_index += 1;
+
+    if (buffer->record_index == RECORDS_IN_BLOCK) {
+        // padding
+        for (int byte = 0; byte < BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record); byte++) {
+            buffer->block->padding[byte] = -1;
+        }
+
+        int status = write_block(&tape->file, buffer->block_index, buffer->block);
+        if (status < 0) {
+            printf("%s: some error writing block\n", __func__);
+            return status;
+        }
+
+        buffer->record_index = 0;
+        buffer->block_index += 1;
+    }
+
+    return 0;
 }
 
 int file_size(FILE **file) {
@@ -127,7 +161,7 @@ int file_size(FILE **file) {
     int size = (int) ftell(*file);
     rewind(*file);
     return size;
-} 
+}
 
 int write_block(FILE **file, int index, struct block *block) {
     int status = fseek(*file, index * BLOCK_SIZE, 0);
@@ -142,7 +176,6 @@ int write_block(FILE **file, int index, struct block *block) {
         return -EIO;
     }
 
-    
     return 0;
 }
 
@@ -177,17 +210,16 @@ void print_block(FILE **file, int index) {
         printf(" ");
         record_print(&block_to_read.records[i], RECORD_PRINT_ID | RECORD_PRINT_NAME | RECORD_PRINT_EMPTY_RECORDS);
     }
-
 }
 
-void disk_print_file(const char *path) {
-    FILE *file;
-    disk_open_file(&file, path);
-
-    printf("%s:\n", path);
-    for (int i = 0; i < file_size(&file) / BLOCK_SIZE; i++) {
-        print_block(&file, i);
+void disk_print_file(struct tape *tape) {
+    printf("%s:     %d runs %d fib last record id %s\n", tape->path, tape->num_runs, tape->fib, tape->last_record.id.identity_series);
+    for (int i = 0; i < file_size(&tape->file) / BLOCK_SIZE; i++) {
+        print_block(&tape->file, i);
     }
 
-    disk_close_file(&file);
+    printf(" Buffer:\n");
+    for (int i = 0; i < RECORDS_IN_BLOCK; i++) {
+        record_print(&tape->buffer.block->records[i], RECORD_PRINT_ID | RECORD_PRINT_NAME);
+    }
 }
