@@ -17,12 +17,15 @@ ALIAS_1 = cellmer
 ALIAS_2 = ziemiec
 
 MAIN_PORT = 5656
-AUXILIARY_PORT = 2137
+AUXILIARY_PORT_1 = 2137
+AUXILIARY_PORT_2 = 2138
+AUXILIARY_PORT_3 = 2139
 
 IMPORT_KEYS_MAIN = $(MY_ALIAS_FED1).cer $(MY_ALIAS_FED2).cer $(ALIAS_1).cer $(ALIAS_2).cer $(ALIAS_1)_fed1.cer $(ALIAS_1)_fed2.cer $(ALIAS_2)_fed1.cer $(ALIAS_2)_fed2.cer
 
 help:
 	@echo "available commands:"
+	@echo "		initial-configuration: generates keys and creates certificates"
 	@echo "		gen-keys"
 	@echo "		export-certs"
 	@echo "		import-certs"
@@ -119,7 +122,7 @@ backup-container:
 	-backupmain \
 	-host $(MAIN_IP) \
 	-port $(MAIN_PORT) \
-	-nomtp -icps jade.imtp.leap.JICP.JICPSPeer\(2137\) \
+	-nomtp -icps jade.imtp.leap.JICP.JICPSPeer\($(AUXILIARY_PORT_1)\) \
 	-services jade.core.replication.MainReplicationService\;\
 	jade.core.replication.AddressNotificationService\;\
 	jade.core.event.NotificationService\;\
@@ -127,36 +130,36 @@ backup-container:
 
 federated-container-1:
 	java \
-	-Djavax.net.ssl.keyStore=$(MY_ALIAS).jks \
+	-Djavax.net.ssl.keyStore=$(MY_ALIAS_FED1).jks \
 	-Djavax.net.ssl.keyStoreType=jks \
 	-Djavax.net.ssl.keyStorePassword=$(STORE_PASS) \
-	-Djavax.net.ssl.trustStore=$(MY_ALIAS)-ca.jks \
+	-Djavax.net.ssl.trustStore=$(MY_ALIAS_FED1)-ca.jks \
 	-Djavax.net.ssl.trustStoreType=jks \
 	-Djava.security.properties=java.security \
 	-cp jade.jar jade.Boot \
 	-container-name $(MY_ALIAS_FED1) \
 	-container \
-	-host $(MAIN_IP) \
-	-port $(MAIN_PORT) \
-	-nomtp -icps jade.imtp.leap.JICP.JICPSPeer\(2138\) \
+	-host $(MY_IP) \
+	-port $(AUXILIARY_PORT_1) \
+	-nomtp -icps jade.imtp.leap.JICP.JICPSPeer\($(AUXILIARY_PORT_2)\) \
 	-services jade.core.replication.AddressNotificationService\;\
 	jade.core.event.NotificationService\;\
 	jade.core.mobility.AgentMobilityService\;
 
 federated-container-2:
 	java \
-	-Djavax.net.ssl.keyStore=$(MY_ALIAS).jks \
+	-Djavax.net.ssl.keyStore=$(MY_ALIAS_FED2).jks \
 	-Djavax.net.ssl.keyStoreType=jks \
 	-Djavax.net.ssl.keyStorePassword=$(STORE_PASS) \
-	-Djavax.net.ssl.trustStore=$(MY_ALIAS)-ca.jks \
+	-Djavax.net.ssl.trustStore=$(MY_ALIAS_FED2)-ca.jks \
 	-Djavax.net.ssl.trustStoreType=jks \
 	-Djava.security.properties=java.security \
 	-cp jade.jar jade.Boot \
 	-container-name $(MY_ALIAS_FED2) \
 	-container \
-	-host $(MAIN_IP) \
-	-port $(MAIN_PORT) \
-	-nomtp -icps jade.imtp.leap.JICP.JICPSPeer\(2139\) \
+	-host $(MY_IP) \
+	-port $(AUXILIARY_PORT_1) \
+	-nomtp -icps jade.imtp.leap.JICP.JICPSPeer\($(AUXILIARY_PORT_3)\) \
 	-services jade.core.replication.AddressNotificationService\;\
 	jade.core.event.NotificationService\;\
 	jade.core.mobility.AgentMobilityService\;
