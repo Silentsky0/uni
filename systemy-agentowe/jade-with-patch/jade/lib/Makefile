@@ -125,7 +125,7 @@ backup-container:
 	jade.core.event.NotificationService\;\
 	jade.core.mobility.AgentMobilityService\;
 
-backup-container-1:
+federated-container-1:
 	java \
 	-Djavax.net.ssl.keyStore=$(MY_ALIAS).jks \
 	-Djavax.net.ssl.keyStoreType=jks \
@@ -143,7 +143,7 @@ backup-container-1:
 	jade.core.event.NotificationService\;\
 	jade.core.mobility.AgentMobilityService\;
 
-backup-container-2:
+federated-container-2:
 	java \
 	-Djavax.net.ssl.keyStore=$(MY_ALIAS).jks \
 	-Djavax.net.ssl.keyStoreType=jks \
