@@ -44,6 +44,7 @@ void disk_close_file(struct tape *tape) {
 
         for (int i = buffer->buffer_records; i < RECORDS_IN_BLOCK; i++) {
             memcpy(&buffer->block->records[buffer->record_index], &incorrect_record, sizeof(struct record));
+            buffer->record_index += 1;
         }
 
         write_block(&tape->file, buffer->block_index, buffer->block);
