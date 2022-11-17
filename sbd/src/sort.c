@@ -9,85 +9,82 @@ struct tape tapes[TAPES_NUM];
 void init_tapes();
 
 void toggle_tape_index(int *tape_index) {
-    *tape_index ^= 1;
+    *tape_index = 1 - *tape_index;
 }
 
 int sort_distribution_phase(const char *input_file_path) {
     
+    // TODO some sort of init_input function
     struct tape input;
     input.path = input_file_path;
+    input.file_mode = "rb";
     
-    int status = disk_open_file(&input, "rb");
+    int status = disk_open_file(&input, input.file_mode);
     if (status < 0) {
         printf("%s: some error opening input file\n", __func__);
         return -1;
     }
 
+    int fib_prev = 1;
+    int fib_next = 1;
+
     struct record record;
-    //struct record previous_record;
     init_tapes();
 
-    int tape_index = 0;
+    int active_tape = 0;
 
-    // insert initial record
-    //disk_get_next_record(&input, &record);
-    //disk_append_record(&tapes[tape_index], &record);
-    //tapes[0].num_runs = 1;
-    //tapes[0].last_record = record;
     disk_print_file(&tapes[0]);
     disk_print_file(&tapes[1]);
 
     printf("\n=== General distribution phase ===\n\n");
 
     while (disk_get_next_record(&input, &record) > 0) {
-        if (record_is_empty(&record))
+
+        if(record_is_empty(&record))
             continue;
 
         printf("\nRead record ");
         record_print(&record, RECORD_PRINT_ID);
 
         printf("\nBefore:\n");
+        printf("Active tape = %d Fib prev = %d, Fib next = %d\n", active_tape, fib_prev, fib_next);
         disk_print_file(&tapes[0]);
         disk_print_file(&tapes[1]);
 
-
-        // if previous record is bigger, end the run
-        if (record_compare(&record, &tapes[tape_index].last_record) < 0) {
-            tapes[tape_index].num_runs += 1;
-            printf("Tape %d: end of run\n", tape_index);
+        if (record_compare(&record, &tapes[active_tape].last_record) < 0) {
+            tapes[active_tape].num_runs += 1;
+            printf("Tape %d now has %d runs\n", active_tape, tapes[active_tape].num_runs);
         }
 
-        if (tapes[tape_index].num_runs == tapes[tape_index].fib && tape_index == 0) {
-            tape_index = 1;
-
-            printf("Switching to append to tape %d now\n", tape_index);
-
-            if (tapes[tape_index].num_runs == tapes[tape_index].fib) {
-                tape_index = 0;
-                int tmp = tapes[0].fib;
-                tapes[0].fib = tapes[0].fib + tapes[1].fib;
-                tapes[1].fib = tmp;
-                printf("Resetting to tape %d now\n", tape_index);
-            }
+        if (tapes[active_tape].num_runs == fib_next) {
+            toggle_tape_index(&active_tape);
+            printf("Toggle tape, increment fibonacci numbers\n");
+            // increment fibonacci numbers
+            int tmp = fib_next;
+            fib_next = fib_next + fib_prev;
+            fib_prev = tmp;
         }
 
-        disk_append_record(&tapes[tape_index], &record);
-
-        tapes[tape_index].last_record = record;
-        
-        if (tapes[tape_index].num_records == 0)
-            tapes[tape_index].num_runs = 1;
-        tapes[tape_index].num_records += 1;
-
+        disk_append_record(&tapes[active_tape], &record);
+        tapes[active_tape].last_record = record;
+        tapes[active_tape].num_records += 1;
 
         printf("\nAfter:\n");
+        printf("Active tape = %d Fib prev = %d, Fib next = %d\n", active_tape, fib_prev, fib_next);
         disk_print_file(&tapes[0]);
         disk_print_file(&tapes[1]);
-
         printf("\n");
     }
 
+    // set dummy runs
+    if (tapes[active_tape].num_runs != fib_prev) 
+        tapes[active_tape].dummy_runs = fib_next - tapes[active_tape].num_runs;
+
+    printf("Tape %d dummy runs = %d\n", active_tape, tapes[active_tape].dummy_runs);
+
     disk_close_file(&input);
+    disk_close_file(&tapes[0]);
+    disk_close_file(&tapes[1]);
 
     return 0;
 }
@@ -100,14 +97,14 @@ void init_tapes() {
     for (int i = 0; i < TAPES_NUM; i++) {
         tapes[i].num_runs = 0;
         tapes[i].num_records = 0;
+        tapes[i].dummy_runs = 0;
+        tapes[i].file_mode = "wb+";
+        generate_incorrect_record(&tapes[i].last_record);
 
-        int status = disk_open_file(&tapes[i], "wb+");
+        int status = disk_open_file(&tapes[i], tapes[i].file_mode);
         if (status < 0) {
             printf("%s: some error opening tape %d file\n", __func__, i);
             return;
         }
     }
-
-    tapes[0].fib = 1;
-    tapes[1].fib = 1;
 }

@@ -8,9 +8,11 @@ struct buffer {
     int record_index;
     int block_index;
     FILE **last_accessed_file;
+    int buffer_records;
 };
 
 void buffer_init(struct buffer *b);
 void buffer_close(struct buffer *b);
+void buffer_clear(struct buffer *b);
 
 #endif // BUFFER_H

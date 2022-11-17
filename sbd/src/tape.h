@@ -8,10 +8,12 @@
 struct tape {
     const char *path;
     FILE *file;
+    const char *file_mode;
 
     struct record last_record;
 
     int num_runs;
+    int dummy_runs;
     int num_records;
     int fib;
 

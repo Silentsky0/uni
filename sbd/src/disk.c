@@ -28,9 +28,28 @@ int disk_open_file(struct tape *tape, const char *mode) {
 
 void disk_close_file(struct tape *tape) {
 
-    buffer_close(&tape->buffer);
+    // if tape is not meant to be written to
+    if (tape->file_mode[0] == 'r') {
+        fclose(tape->file);
+        return;
+    }
 
-    // TODO write block if it contains some leftover records
+    struct buffer *buffer = &tape->buffer;
+
+    struct record incorrect_record;
+    generate_incorrect_record(&incorrect_record);
+
+    // write partially full block if it contains some leftover records
+    if (buffer->buffer_records != RECORDS_IN_BLOCK) {
+
+        for (int i = buffer->buffer_records; i < RECORDS_IN_BLOCK; i++) {
+            memcpy(&buffer->block->records[buffer->record_index], &incorrect_record, sizeof(struct record));
+        }
+
+        write_block(&tape->file, buffer->block_index, buffer->block);
+    }
+
+    buffer_close(buffer);
 
     fclose(tape->file);
 }
@@ -54,11 +73,6 @@ int disk_generate_random(const char *path, int number_of_records)
             new_block.records[j] = new_record;
         }
 
-        // padding
-        for (int byte = 0; byte < BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record); byte++) {
-            new_block.padding[byte] = -1;
-        }
-
         write_block(&file, i, &new_block);
     }
 
@@ -77,10 +91,7 @@ int disk_generate_random(const char *path, int number_of_records)
             generate_incorrect_record(&new_record);
             leftover_block.records[i] = new_record;
         }
-        // padding
-        for (int byte = 0; byte < BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record); byte++) {
-            leftover_block.padding[byte] = -1;
-        }
+
         write_block(&file, blocks_to_generate, &leftover_block);
     }
 
@@ -96,7 +107,7 @@ int disk_generate_random(const char *path, int number_of_records)
  * Returns ENOFILE (-4) when end of file is reached
  */
 int disk_get_next_record(struct tape *tape, struct record *record) {
-
+    // TODO get next should possibly skip empty records 
     struct buffer *buffer = &tape->buffer;
 
     if (buffer->block_index == file_size(&tape->file) / BLOCK_SIZE) {
@@ -112,7 +123,9 @@ int disk_get_next_record(struct tape *tape, struct record *record) {
         }
     }
 
+    // TODO append to buffer could be a function
     memcpy(record, &buffer->block->records[buffer->record_index], sizeof(struct record));
+    buffer->buffer_records += 1;
 
     buffer->record_index += 1;
     if (buffer->record_index == RECORDS_IN_BLOCK) {
@@ -134,20 +147,18 @@ int disk_append_record(struct tape *tape, struct record *record) {
     struct buffer *buffer = &tape->buffer;
 
     memcpy(&buffer->block->records[buffer->record_index], record, sizeof(struct record));
+    buffer->buffer_records += 1;
 
     buffer->record_index += 1;
-
     if (buffer->record_index == RECORDS_IN_BLOCK) {
-        // padding
-        for (int byte = 0; byte < BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record); byte++) {
-            buffer->block->padding[byte] = -1;
-        }
 
         int status = write_block(&tape->file, buffer->block_index, buffer->block);
         if (status < 0) {
             printf("%s: some error writing block\n", __func__);
             return status;
         }
+        
+        buffer_clear(buffer);
 
         buffer->record_index = 0;
         buffer->block_index += 1;
@@ -170,9 +181,15 @@ int write_block(FILE **file, int index, struct block *block) {
         return -EIO;
     }
 
+    // padding
+    for (int byte = 0; byte < BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record); byte++) {
+        block->padding[byte] = -1;
+    }
+
     status = fwrite((void *) block, BLOCK_SIZE, 1, *file);
     if (status < 1) {
-        printf("%s: fwrite error\n", __func__);
+        perror("Error: ");
+        printf("%s: fwrite error %d\n", __func__, ferror(*file));
         return -EIO;
     }
 
@@ -213,7 +230,7 @@ void print_block(FILE **file, int index) {
 }
 
 void disk_print_file(struct tape *tape) {
-    printf("%s:     %d runs %d fib last record id %s\n", tape->path, tape->num_runs, tape->fib, tape->last_record.id.identity_series);
+    printf("%s:     %d runs last record id %s\n", tape->path, tape->num_runs, tape->last_record.id.identity_series);
     for (int i = 0; i < file_size(&tape->file) / BLOCK_SIZE; i++) {
         print_block(&tape->file, i);
     }
