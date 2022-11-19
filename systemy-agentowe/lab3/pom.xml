@@ -13,5 +13,20 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
+    <repositories>
+        <repository>
+            <id>tilab</id>
+            <url>https://jade.tilab.com/maven/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.tilab.jade</groupId>
+            <artifactId>jade</artifactId>
+            <version>4.5.0</version>
+        </dependency>
+    </dependencies>
+
 </project>

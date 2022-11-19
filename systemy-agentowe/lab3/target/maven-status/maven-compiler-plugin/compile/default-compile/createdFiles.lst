@@ -1,0 +1,5 @@
+Main.class
+migration/behaviours/MigratingBehaviour.class
+migration/agents/MigratingAgent.class
+migration/behaviours/RequestContainersListBehaviour.class
+migration/behaviours/ReceiveContainersListBehaviour.class
