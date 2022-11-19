@@ -11,5 +11,9 @@ int main () {
 
     sort_distribution_phase("data/generated.file");
 
+
+    // TEST
+    sort_single_phase(0, 1, 2);
+
     return 0;
 }

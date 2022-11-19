@@ -60,7 +60,10 @@ void unique_random_numbers(int to_generate) {
 int record_compare(struct record* r1, struct record* r2) {
 
     if (record_is_empty(r2))
-        return 0;
+        return r1->id.identity_number;
+
+    if (record_is_empty(r1))
+        return r2->id.identity_number;
 
     int diff;
 
@@ -116,6 +119,7 @@ name:
 
     if (flags & RECORD_PRINT_NAME) {
         printf("  name = %s %s\n", r->data.name, r->data.surname);
+        printf("  flags = %d\n", r->flags); // TODO create function flag to print only record flags
     }
     else {
         printf("\n");
@@ -125,6 +129,8 @@ name:
 void generate_random_record(struct record *r) {
 
     static int generated_id_index = 0;
+
+    r->flags = (char) RECORD_FLAG_DEFAULT;
 
     r->id.identity_number = generated_ids[generated_id_index]; // random number with 5 digits
 
@@ -154,6 +160,10 @@ void generate_random_record(struct record *r) {
 }
 
 void generate_incorrect_record(struct record *r) {
+
+    r->flags = (char) 0;
+    r->flags |= RECORD_FLAG_INCORRECT;
+
     strcpy(r->id.identity_series, "---");
     r->id.identity_number = -1;
 

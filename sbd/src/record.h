@@ -3,9 +3,14 @@
 
 #define NAME_MAX_LENGTH 32
 
-#define RECORD_PRINT_ID             0x1
-#define RECORD_PRINT_NAME           0x2
-#define RECORD_PRINT_EMPTY_RECORDS  0x4
+#define RECORD_PRINT_ID              0x1
+#define RECORD_PRINT_NAME            0x2
+#define RECORD_PRINT_EMPTY_RECORDS   0x4
+
+#define RECORD_FLAG_DEFAULT          0x0
+#define RECORD_FLAG_DELETED          0x1
+#define RECORD_FLAG_INCORRECT        0x2
+#define RECORD_FLAG_LAST_OF_A_SERIES 0x4
 
 struct id {
     char identity_series[4];
@@ -19,6 +24,7 @@ struct data {
 } __attribute__((__packed__));
 
 struct record {
+    char flags;
     struct id id;
     struct data data;
 } __attribute__((__packed__));

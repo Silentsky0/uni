@@ -50,6 +50,9 @@ void disk_close_file(struct tape *tape) {
         write_block(&tape->file, buffer->block_index, buffer->block);
     }
 
+    printf("Closing file %s, its contents:\n", tape->path);
+    disk_print_file(tape);
+
     buffer_close(buffer);
 
     fclose(tape->file);
@@ -105,7 +108,9 @@ int disk_generate_random(const char *path, int number_of_records)
  * Get next record from file
  *
  * Record that was read is placed in *record
- * Returns ENOFILE (-4) when end of file is reached
+ * 
+ * Returns ENOFILE (-4) when end of file is reached, then record read is marked
+ * as incorrect
  */
 int disk_get_next_record(struct tape *tape, struct record *record) {
     // TODO get next should possibly skip empty records 
@@ -113,6 +118,7 @@ int disk_get_next_record(struct tape *tape, struct record *record) {
 
     if (buffer->block_index == file_size(&tape->file) / BLOCK_SIZE) {
         printf("%s: end of file reached\n", __func__); // TODO remove this message
+        generate_incorrect_record(record);
         return -ENOFILE;
     }
 
