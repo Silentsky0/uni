@@ -50,6 +50,8 @@ void disk_close_file(struct tape *tape) {
         write_block(&tape->file, buffer->block_index, buffer->block);
     }
 
+    buffer_clear(buffer);
+
     printf("Closing file %s, its contents:\n", tape->path);
     disk_print_file(tape);
 

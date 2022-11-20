@@ -12,6 +12,7 @@
 struct tape tapes[TAPES_NUM];
 
 void init_sort_tapes();
+void close_sort_tapes();
 int predicate_tapes_sorted();
 void sort_single_phase(int tape_1, int tape_2, int merge_tape);
 
@@ -86,14 +87,16 @@ int sort_distribution_phase(const char *input_file_path) {
     tapes[active_tape].num_runs += 1;
 
     // set dummy runs
-    if (tapes[active_tape].num_runs != fib_prev) 
-        tapes[active_tape].dummy_runs = fib_next - tapes[active_tape].num_runs;
+    //if (tapes[active_tape].num_runs != fib_prev)  // TODO this might be wrong
+    tapes[active_tape].dummy_runs = fib_next - tapes[active_tape].num_runs;
 
     printf("Tape %d dummy runs = %d\n", active_tape, tapes[active_tape].dummy_runs);
 
-    // TODO after a perfect distribution, sometimes the number of dummy runs is wrong
+    // TODO after a perfect distribution, sometimes the number of dummy runs is
+    // wrong - this might have already been fixed
 
     disk_close_file(&input);
+    close_sort_tapes();
 
     return 0;
 }
@@ -106,11 +109,31 @@ int sort_sorting_phase() {
     int tape_2 = DISTRIBUTION_TAPE_2;
     int merge_tape = INITIAL_MERGE_TAPE;
 
+    int tape_1_runs = tapes[tape_1].num_runs;
+    int tape_2_runs = tapes[tape_2].num_runs;
+
+    init_sort_tapes();
 
     while (!predicate_tapes_sorted()) {
         // begin one sorting phase 
 
         sort_single_phase(tape_1, tape_2, merge_tape);
+
+
+        // swap tape numbers
+        if (tape_1_runs > tape_2_runs) {
+            int tmp_1 = tape_1;
+            int tmp_2 = tape_2;
+            tape_2 = merge_tape;
+            tape_1 = tmp_2;
+            merge_tape = tmp_1;
+        }else {
+            int tmp_1 = tape_1;
+            int tmp_2 = tape_2;
+            tape_1 = merge_tape;
+            tape_2 = tmp_1;
+            merge_tape = tmp_2;
+        }
 
         // end sorting phase
         phase_number += 1;
@@ -121,13 +144,9 @@ int sort_sorting_phase() {
 
 void sort_single_phase(int tape_1, int tape_2, int merge_tape) {
 
-    // TODO remove this
-    disk_close_file(&tapes[tape_1]);
-    disk_close_file(&tapes[tape_1]);
-    disk_close_file(&tapes[merge_tape]);
-    init_sort_tapes();
+    static int phase_counter = 0;
 
-    printf("\n\n=== Sorting phase ===\n\n");
+    printf("\n\n=== Sorting phase %d ===\n\n", phase_counter);
     printf("Before:\n");
     disk_print_file(&tapes[tape_1]);
     disk_print_file(&tapes[tape_2]);
