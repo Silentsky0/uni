@@ -17,10 +17,6 @@ int disk_open_file(struct tape *tape, const char *mode) {
         return -EIO;
     }
 
-    tape->num_records = 0;
-    tape->num_runs = 0;
-    tape->fib = 0;
-
     buffer_init(&tape->buffer);
 
     return 0;
@@ -244,8 +240,56 @@ void disk_print_file(struct tape *tape) {
         print_block(&tape->file, i);
     }
 
+    if (tape->buffer.block == NULL)
+        return;
+
     printf(" Buffer:\n");
     for (int i = 0; i < RECORDS_IN_BLOCK; i++) {
         record_print(&tape->buffer.block->records[i], RECORD_PRINT_ID | RECORD_PRINT_NAME);
     }
+}
+
+/*
+ * Print records on tape for debugging purposes
+ *
+ * Also highlights each run
+ * 
+ */
+void disk_debug_tape(struct tape *tape) {
+    printf("\n+++ %s:  runs = %d dummy = %d +++\n\n", tape->path, tape->num_runs, tape->dummy_runs);
+
+    struct record prev;
+    generate_incorrect_record(&prev);
+
+    for (int i = 0; i < file_size(&tape->file) / BLOCK_SIZE; i++) {
+        struct block block_to_read;
+        int status = read_block(&tape->file, i, &block_to_read);
+        if (status < 0) {
+            printf("%s: error reading block\n", __func__);
+        }
+        for (int i = 0; i < RECORDS_IN_BLOCK; i++) {
+            if (record_compare(&block_to_read.records[i], &prev) < 0 && !record_is_empty(&block_to_read.records[i])) {
+                printf("-*-\n");
+            }
+
+            record_print(&block_to_read.records[i], RECORD_PRINT_ID | RECORD_PRINT_EMPTY_RECORDS);
+
+            prev = block_to_read.records[i];
+        }
+    }
+
+    if (tape->buffer.block == NULL)
+        return;
+
+    for (int i = 0; i < RECORDS_IN_BLOCK; i++) {
+        if (record_compare(&tape->buffer.block->records[i], &prev) < 0) {
+            printf("--*--\n");
+        }
+
+        record_print(&tape->buffer.block->records[i], RECORD_PRINT_ID | RECORD_PRINT_EMPTY_RECORDS);
+
+        prev = tape->buffer.block->records[i];
+    }
+
+    printf("\n+++ %s +++\n\n", tape->path);
 }

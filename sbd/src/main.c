@@ -11,7 +11,22 @@ int main () {
 
     sort_distribution_phase("data/generated.file");
 
-    //sort_sorting_phase();
+    sort_sorting_phase();
+
+     
+    // test
+    // struct tape tape;
+    // tape.path = "tapes/t0.tape";
+    // tape.file = fopen(tape.path, "rb+");
+    // if (tape.file == NULL) {
+    //     printf("%s: file %s doesn't exist\n", __func__, tape.path);
+    //     return -EIO;
+    // }
+
+    // printf("---------\n\n");
+
+    // disk_print_file(&tape);
+
 
     return 0;
 }

@@ -52,18 +52,15 @@ void unique_random_numbers(int to_generate) {
 }
 
 /*
- * 0 if records are identical
+ * 0 if any of the records is empty
  * positive value if r1 is greater
  * negative value if r2 is greater
  * value indicates difference between the two
  */
 int record_compare(struct record* r1, struct record* r2) {
 
-    if (record_is_empty(r2))
-        return r1->id.identity_number;
-
-    if (record_is_empty(r1))
-        return r2->id.identity_number;
+    if (record_is_empty(r1) || record_is_empty(r2))
+        return 0;
 
     int diff;
 
@@ -118,7 +115,7 @@ void record_print(struct record *r, char flags) {
 name:
 
     if (flags & RECORD_PRINT_NAME) {
-        printf("  name = %s %s\n", r->data.name, r->data.surname);
+        printf("  name = %s %s", r->data.name, r->data.surname);
         printf("  flags = %d\n", r->flags); // TODO create function flag to print only record flags
     }
     else {

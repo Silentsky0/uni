@@ -22,6 +22,7 @@ void buffer_clear(struct buffer *b) {
 void buffer_close(struct buffer *b) {
     b->buffer_records = 0;
     free(b->block);
+    b->block = NULL;
 }
 
 void buffer_dump(struct buffer *b) {

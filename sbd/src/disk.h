@@ -23,5 +23,6 @@ int read_block(FILE **file, int index, struct block *block);
 
 int disk_generate_random(const char *path, int number_of_records);
 void disk_print_file(struct tape *tape);
+void disk_debug_tape(struct tape *tape);
 
 #endif
