@@ -115,8 +115,7 @@ void record_print(struct record *r, char flags) {
 name:
 
     if (flags & RECORD_PRINT_NAME) {
-        printf("  name = %s %s", r->data.name, r->data.surname);
-        printf("  flags = %d\n", r->flags); // TODO create function flag to print only record flags
+        printf("  name = %s %s\n", r->data.name, r->data.surname);
     }
     else {
         printf("\n");
@@ -126,8 +125,6 @@ name:
 void generate_random_record(struct record *r) {
 
     static int generated_id_index = 0;
-
-    r->flags = (char) RECORD_FLAG_DEFAULT;
 
     r->id.identity_number = generated_ids[generated_id_index]; // random number with 5 digits
 
@@ -157,9 +154,6 @@ void generate_random_record(struct record *r) {
 }
 
 void generate_incorrect_record(struct record *r) {
-
-    r->flags = (char) 0;
-    r->flags |= RECORD_FLAG_INCORRECT;
 
     strcpy(r->id.identity_series, "---");
     r->id.identity_number = -1;

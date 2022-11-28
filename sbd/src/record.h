@@ -24,7 +24,6 @@ struct data {
 } __attribute__((__packed__));
 
 struct record {
-    char flags;
     struct id id;
     struct data data;
 } __attribute__((__packed__));

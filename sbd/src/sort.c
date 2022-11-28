@@ -14,10 +14,13 @@ struct tape tapes[TAPES_NUM];
 void init_sort_tapes();
 void close_sort_tapes();
 int predicate_tapes_sorted();
-void sort_single_phase(int tape_1, int tape_2, int merge_tape);
+void sort_single_phase(int runs_to_merge, int tape_1, int tape_2, int merge_tape);
 void reopen_sort_tapes();
 void sort_merge_record(struct record *record, int record_number, int from_tape, int merge_tape);
 void sort_print_merge_records(struct record *r1, struct record *r2);
+void open_sort_tape(int tape_num, const char *mode);
+void close_sort_tape(int tape_num);
+void sort_merge_dummy_runs(int tape_num, int merge_tape);
 
 void toggle_tape_index(int *tape_index) {
     *tape_index = 1 - *tape_index;
@@ -44,9 +47,6 @@ int sort_distribution_phase(const char *input_file_path) {
 
     int active_tape = 0;
 
-    disk_print_file(&tapes[DISTRIBUTION_TAPE_1]);
-    disk_print_file(&tapes[DISTRIBUTION_TAPE_2]);
-
     printf("\n=== General distribution phase ===\n\n");
 
     while (disk_get_next_record(&input, &record) > 0) {
@@ -54,20 +54,20 @@ int sort_distribution_phase(const char *input_file_path) {
         if(record_is_empty(&record))
             continue;
 
-        printf("\nRead record ");
-        record_print(&record, RECORD_PRINT_ID);
+        // printf("\nRead record ");
+        // record_print(&record, RECORD_PRINT_ID);
 
-        printf("\nBefore:\n");
-        printf("Active tape = %d Fib prev = %d, Fib next = %d\n", active_tape, fib_prev, fib_next);
-        //disk_print_file(&tapes[DISTRIBUTION_TAPE_1]);
-        //disk_print_file(&tapes[DISTRIBUTION_TAPE_2]);
-        disk_debug_tape(&tapes[DISTRIBUTION_TAPE_1]);
-        disk_debug_tape(&tapes[DISTRIBUTION_TAPE_2]);
+        // printf("\nBefore:\n");
+        // printf("Active tape = %d Fib prev = %d, Fib next = %d\n", active_tape, fib_prev, fib_next);
+        // //disk_print_file(&tapes[DISTRIBUTION_TAPE_1]);
+        // //disk_print_file(&tapes[DISTRIBUTION_TAPE_2]);
+        // disk_debug_tape(&tapes[DISTRIBUTION_TAPE_1]);
+        // disk_debug_tape(&tapes[DISTRIBUTION_TAPE_2]);
 
         // end of run or beginning of distribution
         if (record_compare(&record, &tapes[active_tape].last_record) < 0 || record_is_empty(&tapes[active_tape].last_record)) {
             tapes[active_tape].num_runs += 1;
-            printf("Tape %d now has %d runs\n", active_tape, tapes[active_tape].num_runs);
+            //printf("Tape %d now has %d runs\n", active_tape, tapes[active_tape].num_runs);
         }
 
         disk_append_record(&tapes[active_tape], &record);
@@ -76,7 +76,7 @@ int sort_distribution_phase(const char *input_file_path) {
 
         if (tapes[active_tape].num_runs == fib_next) {
             toggle_tape_index(&active_tape);
-            printf("Toggle tape, increment fibonacci numbers\n");
+            //printf("Toggle tape, increment fiboanacci numbers\n");
 
             // increment fibonacci numbers
             int tmp = fib_next;
@@ -84,25 +84,20 @@ int sort_distribution_phase(const char *input_file_path) {
             fib_prev = tmp;
         }
 
-        printf("\nAfter:\n");
-        printf("Active tape = %d Fib prev = %d, Fib next = %d\n", active_tape, fib_prev, fib_next);
-        //disk_print_file(&tapes[DISTRIBUTION_TAPE_1]);
-        disk_debug_tape(&tapes[DISTRIBUTION_TAPE_1]);
-        //disk_print_file(&tapes[DISTRIBUTION_TAPE_2]);
-        disk_debug_tape(&tapes[DISTRIBUTION_TAPE_2]);
-        printf("\n");
+        // printf("\nAfter:\n");
+        // printf("Active tape = %d Fib prev = %d, Fib next = %d\n", active_tape, fib_prev, fib_next);
+        // //disk_print_file(&tapes[DISTRIBUTION_TAPE_1]);
+        // disk_debug_tape(&tapes[DISTRIBUTION_TAPE_1]);
+        // //disk_print_file(&tapes[DISTRIBUTION_TAPE_2]);
+        // disk_debug_tape(&tapes[DISTRIBUTION_TAPE_2]);
+        // printf("\n");
     }
 
-    //tapes[active_tape].num_runs += 1;
+    if (tapes[active_tape].num_runs != fib_next - fib_prev)
+        tapes[active_tape].dummy_runs = fib_next - tapes[active_tape].num_runs;
 
-    // set dummy runs
-    //if (tapes[active_tape].num_runs != fib_prev)  // TODO this might be wrong
-    tapes[active_tape].dummy_runs = fib_next - tapes[active_tape].num_runs;
+    //printf("Tape %d dummy runs = %d\n", active_tape, tapes[active_tape].dummy_runs);
 
-    printf("Tape %d dummy runs = %d\n", active_tape, tapes[active_tape].dummy_runs);
-
-    // TODO after a perfect distribution, sometimes the number of dummy runs is
-    // wrong - this might have already been fixed
 
     disk_close_file(&input);
     close_sort_tapes();
@@ -121,7 +116,18 @@ int sort_sorting_phase() {
     int tape_1_runs = tapes[tape_1].num_runs;
     int tape_2_runs = tapes[tape_2].num_runs;
 
-    reopen_sort_tapes();
+    int dummy_tape = 0;
+
+    if (tapes[tape_1].dummy_runs != 0) {
+        dummy_tape = tape_1;
+    }
+    else {
+        dummy_tape = tape_2;
+    }
+
+    open_sort_tape(tape_1, "rb+");
+    open_sort_tape(tape_2, "rb+");
+    open_sort_tape(merge_tape, "wb+");
 
     // DEBUG
     printf("\n\n\n\n===== D E B U G =====\n\n");
@@ -129,29 +135,27 @@ int sort_sorting_phase() {
     disk_debug_tape(&tapes[tape_2]);
     printf("\n\n\n");
 
-    tapes[tape_1].num_runs += tapes[tape_1].dummy_runs;
-    tapes[tape_2].num_runs += tapes[tape_2].dummy_runs;
 
+    sort_merge_dummy_runs(dummy_tape, merge_tape);
 
     while (!predicate_tapes_sorted()) {
         // TODO remove
-        if (phase_number == 3)
+        if (phase_number == 1)
             break;
 
         // begin one sorting phase 
 
-        printf("\n\n=== Sorting phase %d ===\n\n", phase_number);
+        int runs_to_merge = min(tapes[tape_1].num_runs, tapes[tape_2].num_runs) - tapes[dummy_tape].dummy_runs;
 
-        sort_single_phase(tape_1, tape_2, merge_tape);
+        printf("\n\n=== Sorting phase %d merge %d runs===\n\n", phase_number, runs_to_merge);
+
+        sort_single_phase(runs_to_merge, tape_1, tape_2, merge_tape);
 
 
         // swap tape numbers
         if (tape_1_runs > tape_2_runs) {
-            int tmp_1 = tape_1;
-            int tmp_2 = tape_2;
-            tape_2 = merge_tape;
-            tape_1 = tmp_2;
-            merge_tape = tmp_1;
+            merge_tape = tape_2;
+
         }else {
             int tmp_1 = tape_1;
             int tmp_2 = tape_2;
@@ -167,18 +171,58 @@ int sort_sorting_phase() {
     return 0;
 }
 
-void sort_single_phase(int tape_1, int tape_2, int merge_tape) {
+void sort_merge_dummy_runs(int tape_num, int merge_tape) {
 
-    // printf("tape1 = %d tape2 = %d merge_tape = %d Before:\n", tape_1, tape_2, merge_tape);
-    // disk_print_file(&tapes[tape_1]);
-    // disk_print_file(&tapes[tape_2]);
-    // disk_print_file(&tapes[merge_tape]);
-
-    int runs_to_merge = min(tapes[tape_1].num_runs, tapes[tape_2].num_runs);
-
+    int runs_to_merge = tapes[tape_num].dummy_runs;
     int runs_merged = 0;
 
-    printf("\nRuns to merge: %d\n\n", runs_to_merge);
+    printf("=== merge %d dummy runs ===\n", runs_to_merge);
+
+    struct record record_merge;
+    struct record previous_record;
+    generate_incorrect_record(&previous_record);
+
+    while (runs_merged < runs_to_merge) {
+
+        int tape_run_done = 0;
+
+        if (record_is_empty(&tapes[tape_num].extra_record)) {
+            disk_get_next_record(&tapes[tape_num], &record_merge);
+        } else {
+            record_merge = tapes[tape_num].extra_record;
+            generate_incorrect_record(&tapes[tape_num].extra_record);
+        }
+
+        // merge one run
+        while (!tape_run_done) {
+
+            previous_record = record_merge;
+            sort_merge_record(&record_merge, tape_num, tape_num, merge_tape);
+
+            // record 1 ends run
+            if (record_compare(&record_merge, &previous_record) < 0 || record_is_empty(&record_merge)) {
+                tape_run_done = 1;
+                //tapes[tape_num].dummy_runs -= 1;
+                tapes[tape_num].extra_record = record_merge;
+
+                printf("extra record dummy is now ");
+                record_print(&tapes[tape_num].extra_record, RECORD_PRINT_ID);
+
+                generate_incorrect_record(&record_merge);
+
+                printf("Dummy: End of run on tape %d\n", tape_num);
+            }
+        }
+
+        runs_merged += 1;
+    }
+}
+
+void sort_single_phase(int runs_to_merge, int tape_1, int tape_2, int merge_tape) {
+
+    tapes[merge_tape].num_runs = 1;
+
+    int runs_merged = 0;
 
     struct record record_merge_1;
     struct record record_merge_2;
@@ -213,8 +257,8 @@ void sort_single_phase(int tape_1, int tape_2, int merge_tape) {
         printf("--- merge 1 run from both tapes, %d to go\n\n", runs_to_merge - runs_merged);
         while (!(tape_1_run_done && tape_2_run_done)) {
             
-            printf("-test-\n");
-            sort_print_merge_records(&record_merge_1, &record_merge_2);
+            //printf("-test-\n");
+            //sort_print_merge_records(&record_merge_1, &record_merge_2);
 
             // record 1 is smaller
             if (record_compare(&record_merge_1, &record_merge_2) < 0 && !tape_1_run_done) {
@@ -222,7 +266,7 @@ void sort_single_phase(int tape_1, int tape_2, int merge_tape) {
                 previous_record_1 = record_merge_1;
                 sort_merge_record(&record_merge_1, 1, tape_1, merge_tape);
 
-                sort_print_merge_records(&record_merge_1, &record_merge_2);
+                //sort_print_merge_records(&record_merge_1, &record_merge_2);
 
                 // record 1 ends run
                 if (record_compare(&record_merge_1, &previous_record_1) < 0 || record_is_empty(&record_merge_1)) { // TODO this clause could be a function
@@ -245,7 +289,7 @@ void sort_single_phase(int tape_1, int tape_2, int merge_tape) {
                 previous_record_2 = record_merge_2;
                 sort_merge_record(&record_merge_2, 2, tape_2, merge_tape);
 
-                sort_print_merge_records(&record_merge_1, &record_merge_2);
+                //sort_print_merge_records(&record_merge_1, &record_merge_2);
 
                 //record 2 ends run
                 if (record_compare(&record_merge_2, &previous_record_2) < 0 || record_is_empty(&record_merge_2)) {
@@ -274,7 +318,7 @@ void sort_single_phase(int tape_1, int tape_2, int merge_tape) {
                 previous_record_2 = record_merge_2;
                 sort_merge_record(&record_merge_2, 2, tape_2, merge_tape);
 
-                sort_print_merge_records(&record_merge_1, &record_merge_2);
+                //sort_print_merge_records(&record_merge_1, &record_merge_2);
 
                 //record 2 ends run
                 if (record_compare(&record_merge_2, &previous_record_2) < 0 || record_is_empty(&record_merge_2)) {
@@ -297,7 +341,7 @@ void sort_single_phase(int tape_1, int tape_2, int merge_tape) {
                 previous_record_1 = record_merge_1;
                 sort_merge_record(&record_merge_1, 1, tape_1, merge_tape);
 
-                sort_print_merge_records(&record_merge_1, &record_merge_2);
+                //sort_print_merge_records(&record_merge_1, &record_merge_2);
 
                 // record 1 ends run
                 if (record_compare(&record_merge_1, &previous_record_1) < 0 || record_is_empty(&record_merge_1)) {
@@ -327,9 +371,29 @@ void sort_single_phase(int tape_1, int tape_2, int merge_tape) {
         }
 
         runs_merged += 1;
+        tapes[merge_tape].num_runs += 1;
     }
 
-    // printf("After:\n");
+
+
+    printf("\nAfter:\n");
+    // printf("tape 1 block %d record %d\n", tapes[tape_1].buffer.block_index, tapes[tape_1].buffer.record_index);
+    // printf("tape 2 block %d record %d\n", tapes[tape_2].buffer.block_index, tapes[tape_2].buffer.record_index);
+    
+    
+    struct record rec;
+    printf("tape 1:\n");
+    record_print(&tapes[tape_1].extra_record, RECORD_PRINT_ID);
+    printf("\n");
+    while (disk_get_next_record(&tapes[tape_1], &rec) >= 0) {
+        record_print(&rec, RECORD_PRINT_EMPTY_RECORDS | RECORD_PRINT_ID);
+    }
+    printf("tape 2:\n");
+    record_print(&tapes[tape_2].extra_record, RECORD_PRINT_ID);
+    printf("\n");
+    while (disk_get_next_record(&tapes[tape_2], &rec) >= 0) {
+        record_print(&rec, RECORD_PRINT_EMPTY_RECORDS | RECORD_PRINT_ID);
+    }
     // disk_print_file(&tapes[tape_1]);
     // disk_print_file(&tapes[tape_2]);
     // disk_print_file(&tapes[merge_tape]);
@@ -399,4 +463,12 @@ void close_sort_tapes() {
     for (int i = 0; i < TAPES_NUM; i++) { 
         disk_close_file(&tapes[i]);
     }
+}
+
+void open_sort_tape(int tape_num, const char *mode) {
+    disk_open_file(&tapes[tape_num], mode);
+}
+
+void close_sort_tape(int tape_num) {
+    disk_close_file(&tapes[tape_num]);
 }
