@@ -15,10 +15,18 @@ public class MigratingBehaviour extends Behaviour {
 
     @Override
     public void action() {
-        Location location = myAgent.getLocationList().get(0);
-        myAgent.getLocationList().remove(location);
-        //myAgent.getLocations().add(location); //odkomentowac dla zad3
-        myAgent.doMove(location);
+        if (!myAgent.getLocationList().isEmpty()) {
+            Location location = myAgent.getLocationList().get(0);
+            myAgent.getLocationList().remove(location);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            myAgent.getLocationList().add(location);
+            myAgent.doMove(location);
+        }
+
     }
 
     @Override

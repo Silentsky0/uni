@@ -5,6 +5,7 @@ import jade.content.lang.sl.SLCodec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.behaviours.SimpleBehaviour;
+import jade.domain.FIPANames;
 import jade.domain.JADEAgentManagement.QueryPlatformLocationsAction;
 import jade.domain.mobility.MobilityOntology;
 import jade.lang.acl.ACLMessage;
@@ -12,7 +13,6 @@ import lombok.extern.java.Log;
 import migration.agents.MigratingAgent;
 
 import java.util.UUID;
-import java.util.logging.Level;
 
 @Log
 public class RequestContainersListBehaviour extends SimpleBehaviour {
@@ -32,18 +32,21 @@ public class RequestContainersListBehaviour extends SimpleBehaviour {
         String conversationId = UUID.randomUUID().toString();
 
         ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-        request.setLanguage(new SLCodec().getName());
+        request.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
         request.setOntology(MobilityOntology.getInstance().getName());
         request.addReceiver(myAgent.getAMS());
         request.setConversationId(conversationId);
 
+        myAgent.getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL);
+        myAgent.getContentManager().registerOntology(MobilityOntology.getInstance());
+
         try {
             myAgent.getContentManager().fillContent(request, action);
-            myAgent.send(request);
-            myAgent.addBehaviour(new ReceiveContainersListBehaviour(myAgent, conversationId));
-        } catch (Codec.CodecException | OntologyException ex) {
-            log.log(Level.WARNING, ex.getMessage(), ex);
+        } catch (Codec.CodecException | OntologyException e) {
+            throw new RuntimeException(e);
         }
+        myAgent.send(request);
+        myAgent.addBehaviour(new ReceiveContainersListBehaviour(myAgent, conversationId));
     }
 
     @Override

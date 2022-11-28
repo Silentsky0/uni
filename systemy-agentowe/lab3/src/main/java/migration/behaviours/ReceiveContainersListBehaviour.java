@@ -2,10 +2,13 @@ package migration.behaviours;
 
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
 import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Result;
 import jade.core.Location;
 import jade.core.behaviours.Behaviour;
+import jade.domain.FIPANames;
+import jade.domain.mobility.MobilityOntology;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import lombok.extern.java.Log;
@@ -40,6 +43,9 @@ public class ReceiveContainersListBehaviour extends Behaviour {
 
     @Override
     public void action() {
+        myAgent.getContentManager().registerLanguage(new SLCodec(), FIPANames.ContentLanguage.FIPA_SL);
+        myAgent.getContentManager().registerOntology(MobilityOntology.getInstance());
+
         ACLMessage msg = myAgent.receive(mt);
         if (msg != null) {
             done = true;
@@ -51,7 +57,7 @@ public class ReceiveContainersListBehaviour extends Behaviour {
                     locations.add((Location) i);
                 });
                 locations.remove(myAgent.here());
-                //locations.add(myAgent.here()); // odkomentowac dla zad 2 i 3
+                locations.add(myAgent.here());
                 myAgent.setLocationList(locations);
                 myAgent.addBehaviour(new MigratingBehaviour(myAgent));
             } catch (Codec.CodecException | OntologyException ex) {
