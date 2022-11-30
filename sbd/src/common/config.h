@@ -6,7 +6,7 @@
 #define BLOCK_SIZE 512
 #define RECORDS_IN_BLOCK (BLOCK_SIZE / sizeof(struct record))
 
-#define MAX_RANDOM_IDS 1024
+#define MAX_RANDOM_IDS 1048576 // 2^20
 
 #define TAPES_NUM 3
 

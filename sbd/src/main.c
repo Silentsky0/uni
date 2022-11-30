@@ -7,11 +7,15 @@
 
 int main () {
 
-    disk_generate_random("data/generated.file", 20);
+    int requested_records = 2000;
+
+    disk_generate_random("data/generated.file", requested_records);
 
     sort_distribution_phase("data/generated.file");
 
     sort_sorting_phase();
+
+    sort_postprocess_phase(requested_records, 0);
 
      
     // test

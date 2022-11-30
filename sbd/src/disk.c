@@ -11,6 +11,7 @@ int file_size(FILE **file);
 
 int disk_open_file(struct tape *tape, const char *mode) {
 
+    tape->file_mode = mode;
     tape->file = fopen(tape->path, mode);
     if (tape->file == NULL) {
         printf("%s: file %s doesn't exist\n", __func__, tape->path);
@@ -26,6 +27,8 @@ void disk_close_file(struct tape *tape) {
 
     // if tape is not meant to be written to
     if (tape->file_mode[0] == 'r') {
+        // printf("Closing file %s without a buffer, its contents:\n", tape->path);
+        // disk_print_file(tape);
         fclose(tape->file);
         return;
     }
@@ -48,8 +51,8 @@ void disk_close_file(struct tape *tape) {
 
     buffer_clear(buffer);
 
-    printf("Closing file %s, its contents:\n", tape->path);
-    disk_print_file(tape);
+    // printf("Closing file %s, its contents:\n", tape->path);
+    // disk_print_file(tape);
 
     buffer_close(buffer);
 
@@ -236,6 +239,7 @@ void print_block(FILE **file, int index) {
 
 void disk_print_file(struct tape *tape) {
     printf("%s:     %d runs last record id %s\n", tape->path, tape->num_runs, tape->last_record.id.identity_series);
+    printf("buffer block = %d, record = %d\n", tape->buffer.block_index, tape->buffer.record_index);
     for (int i = 0; i < file_size(&tape->file) / BLOCK_SIZE; i++) {
         print_block(&tape->file, i);
     }

@@ -31,15 +31,19 @@ const char *random_female_surnames[RANDOM_FEMALE_SURNAMES_NUM] = {"Baran","Kowal
 void unique_random_numbers(int to_generate) {
     int index;
     const int max_random_value = 99999;
+    to_generate = 99999;
 
     srand(time(NULL));
-
-    for (index = 0; index < max_random_value && generated_ids_number < to_generate; index++) {
+    
+    // TODO index < max_random_value was here
+    for (index = 0; generated_ids_number < to_generate; index++) {
         int rn = max_random_value - index;
         int rm = to_generate - generated_ids_number;
         if (rand() % rn < rm)
             generated_ids[generated_ids_number++] = index;
     }
+
+    printf("test\n");
 
     assert(generated_ids_number == to_generate);
 
@@ -151,6 +155,9 @@ void generate_random_record(struct record *r) {
     r->data.age = rand() % 100;
 
     generated_id_index += 1;
+
+    if (generated_id_index == 100000)
+        generated_id_index = 0;
 }
 
 void generate_incorrect_record(struct record *r) {
