@@ -45,16 +45,27 @@ int sort_distribution_phase(const char *input_file_path) {
     int fib_next = 1;
 
     struct record record;
+    struct record prev;
+    generate_incorrect_record(&prev);
+
     init_sort_tapes("wb+");
 
     int active_tape = 0;
+    int num_runs = 1;
 
     printf("\n=== General distribution phase ===\n\n");
+
+    // disk_debug_tape(&input);
 
     while (disk_get_next_record(&input, &record) > 0) {
 
         if(record_is_empty(&record))
             continue;
+
+        // calculate runs in input file
+        if (record_compare(&record, &prev) < 0) { 
+            num_runs += 1;
+        }
 
         // printf("\nRead record ");
         // record_print(&record, RECORD_PRINT_ID);
@@ -93,6 +104,8 @@ int sort_distribution_phase(const char *input_file_path) {
         // //disk_print_file(&tapes[DISTRIBUTION_TAPE_2]);
         // disk_debug_tape(&tapes[DISTRIBUTION_TAPE_2]);
         // printf("\n");
+
+        prev = record;
     }
 
     if (tapes[active_tape].num_runs != fib_next - fib_prev)
@@ -100,9 +113,17 @@ int sort_distribution_phase(const char *input_file_path) {
 
     //printf("Tape %d dummy runs = %d\n", active_tape, tapes[active_tape].dummy_runs);
 
+    // disk_debug_tape(&tapes[0]);
+    // disk_debug_tape(&tapes[1]);
 
     disk_close_file(&input);
     close_sort_tapes();
+
+    printf("Number of runs on input file: %d\n", num_runs);
+
+    printf("Number of disk operations:\n");
+    printf("    read  %d\n", get_read_operations_number());
+    printf("    write %d\n\n", get_write_operations_number());
 
     return 0;
 }
@@ -120,7 +141,7 @@ int sort_sorting_phase() {
     //int tape_1_runs = tapes[tape_1].num_runs;
     //int tape_2_runs = tapes[tape_2].num_runs;
 
-    printf("\ntape 1 runs = %d, tape 2 runs = %d, sum = %d\n", tapes[tape_1].num_runs, tapes[tape_2].num_runs, tapes[tape_1].num_runs + tapes[tape_2].num_runs);
+    printf("tape 1 runs = %d, tape 2 runs = %d, sum = %d\n", tapes[tape_1].num_runs, tapes[tape_2].num_runs, tapes[tape_1].num_runs + tapes[tape_2].num_runs);
 
     int dummy_tape = 0;
     int dummy_runs = 0;
@@ -358,12 +379,6 @@ void sort_single_phase(int runs_to_merge, int tape_1, int tape_2, int merge_tape
                 }
             }
 
-            if (tape_1_run_done && tape_2_run_done) {
-                printf("this situation happened\n");
-                disk_debug_tape(&tapes[merge_tape]);
-                break;
-            }
-
             // record 1 is empty
             if (record_is_empty(&record_merge_1)) {
                 //printf("record 1 is empty\n");
@@ -459,6 +474,10 @@ void sort_postprocess_phase(int initial_elements_num, int print_contents) {
 
     printf("Number of sorting phases: %d\n\n", return_sorting_phases);
 
+    printf("Number of disk operations:\n");
+    printf("    read  %d\n", get_read_operations_number());
+    printf("    write %d\n\n", get_write_operations_number());
+
     struct record rec;
     struct record prev;
     generate_incorrect_record(&prev);
@@ -468,7 +487,8 @@ void sort_postprocess_phase(int initial_elements_num, int print_contents) {
 
     while (disk_get_next_record(&tapes[return_merge_tape], &rec) >= 0) {
         if (record_is_empty(&rec)) {
-            record_print(&prev, RECORD_PRINT_ID | RECORD_PRINT_EMPTY_RECORDS);
+            if (print_contents)
+                record_print(&rec, RECORD_PRINT_ID | RECORD_PRINT_EMPTY_RECORDS);
             continue;
         }
 
@@ -476,24 +496,33 @@ void sort_postprocess_phase(int initial_elements_num, int print_contents) {
             record_print(&rec, RECORD_PRINT_EMPTY_RECORDS | RECORD_PRINT_ID);
         num_of_elements += 1;
 
-        if (record_compare(&rec, &prev) < 0) { // prev is bigger, incorrect sorting
+        if (record_compare(&rec, &prev) < 0 && !record_is_equal(&rec, &prev)) { // prev is bigger, incorrect sorting
             sorting_errors += 1;
             if (print_contents) 
                 printf("\nERROR: tape is not sorted properly\n\n");
         }
 
+        if (record_is_equal(&rec, &prev)) {
+            printf("records are equal:  !!!\n");
+            record_print(&prev, RECORD_PRINT_ID | RECORD_PRINT_EMPTY_RECORDS);
+        }
+
         prev = rec;
     }
 
-    if (initial_elements_num != num_of_elements && print_contents) {
-        printf("\nERROR: there is a different number of records %d != %d\n\n", initial_elements_num, num_of_elements);
+    // keep in mind that generated number of elements is rounded up to fill up
+    // the last block
+    int initial_elements_num_corrected = (initial_elements_num / RECORDS_IN_BLOCK + 1) * RECORDS_IN_BLOCK;
+
+    if (initial_elements_num_corrected != num_of_elements && print_contents) {
+        printf("\nERROR: there is a different number of records %d != %d\n\n", initial_elements_num_corrected, num_of_elements);
     }
 
-    if (num_of_elements == initial_elements_num && sorting_errors == 0) {
+    if (num_of_elements == initial_elements_num_corrected && sorting_errors == 0) {
         printf("Everything is correct\n");
     }
     else {
-        printf("Some errors occured: elements_num %d != %d, sorting errors = %d\n", initial_elements_num, num_of_elements, sorting_errors);
+        printf("Some errors occured: elements_num %d != %d, sorting errors = %d\n", initial_elements_num_corrected, num_of_elements, sorting_errors);
     }
 
     printf("\n\n\n\n");
@@ -528,6 +557,41 @@ void sort_print_merge_records(struct record *r1, struct record *r2) {
     printf("\nRecord 2 : ");
     record_print(r2, RECORD_PRINT_ID | RECORD_PRINT_EMPTY_RECORDS);
     printf("\n");
+}
+
+/*
+ * DEPRECATED - useless function
+ */
+void sort_remove_duplicates_phase(const char *path, const char *dest) {
+    struct tape input;
+    input.path = path;
+    struct tape destination;
+    destination.path = dest;
+
+    int status = disk_open_file(&input, "rb");
+    if (status < 0) {
+        printf("%s: some error opening file %s\n", __func__, input.path);
+    }
+    status = disk_open_file(&destination, "rb");
+    if (status < 0) {
+        printf("%s: some error opening file %s\n", __func__, destination.path);
+    }
+
+    struct record rec;
+    struct record prev;
+    generate_incorrect_record(&prev);
+
+    while (disk_get_next_record(&tapes[return_merge_tape], &rec) >= 0) {
+
+        if (!record_is_equal(&rec, &prev)) {
+            disk_append_record(&destination, &rec);
+        }
+
+        prev = rec;
+    }
+
+    disk_close_file(&input);
+    disk_close_file(&destination);
 }
 
 void init_sort_tapes(const char *mode) {

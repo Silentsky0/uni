@@ -1,0 +1,58 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\author{Paweł Cichowski}
+\date{}
+\title{SBD Projekt 1}
+\begin{document}
+
+\maketitle
+
+\section{Wprowadzenie}
+
+Celem projektu było zaimplementowanie programu sortującego plik metodą sortowania polifazowego Fibonacciego. Odczyty oraz zapisy danych symulowane są przez blokowe operacje dyskowe. Zadanie zostało zrealizowane w języku C.
+
+Program jest podzielony na dwie warstwy abstrakcji: warstwę sortowania oraz warstwę odczytu i zapisu, która udostępnia dwie funkcje: pobrania kolejnego rekordu z pliku oraz dopisania rekordu do pliku.
+
+Wylosowanym typem rekordu był numer dowodu osobistego - obywatel, uporządkowane po numerze dowodu. W programie przyjęto, że klucze rekordów są unikalne.
+
+\section{Instrukcja obsługi}
+
+\section{Wyniki eksperymentu}
+
+\subsection{Opis eksperymentu}
+
+Przeprowadzony został eksperyment, polegający na wygenerowaniu wybranej liczby losowych rekordów oraz przeanalizowanie liczby serii. Następnie plik został posortowany metodą sortowania polifazowego oraz zapisana została liczba faz potrzebnych na zrealizowanie sortowania.
+
+\subsection{Dane wejściowe}
+
+\begin{tabular}{|c|c|c|}
+\hline 
+Nr. eksperymentu & Liczba rekordów & Liczba serii \\ 
+\hline 
+1 & 10 & 6 \\ 
+\hline 
+2 & 100 & 52 \\ 
+\hline 
+3 & 1000 & 512 \\
+\hline
+4 & 10.000 & 5031 \\
+\hline 
+5 & 100.000 & • \\ 
+\hline 
+6 & 1.000.000 & • \\ 
+\hline 
+7 & 10.000.000 & • \\ 
+\hline 
+\end{tabular} 
+
+
+
+\subsection{Rezultaty sortowania}
+
+
+\end{document}

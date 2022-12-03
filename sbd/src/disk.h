@@ -12,6 +12,10 @@ struct block {
     char padding[BLOCK_SIZE - RECORDS_IN_BLOCK * sizeof(struct record)];
 } __attribute__((__packed__));
 
+int file_size(FILE **file);
+int get_write_operations_number();
+int get_read_operations_number();
+
 int disk_open_file(struct tape *tape, const char *mode);
 void disk_close_file(struct tape *tape);
 
@@ -22,6 +26,7 @@ int write_block(FILE **file, int index, struct block *block);
 int read_block(FILE **file, int index, struct block *block);
 
 int disk_generate_random(const char *path, int number_of_records);
+int disk_generate_records(const char *path, int to_generate);
 void disk_print_file(struct tape *tape);
 void disk_debug_tape(struct tape *tape);
 

@@ -32,9 +32,12 @@ int record_compare(struct record* r1, struct record* r2);
 int record_is_empty(struct record *r);
 const char *record_to_string(struct record* r);
 void record_print(struct record *r, char flags);
+int record_is_equal(struct record* r1, struct record* r2);
 
 void generate_random_record(struct record *r);
 void generate_incorrect_record(struct record *r);
 void unique_random_numbers(int to_generate);
+
+void generate_next_record(struct record *r);
 
 #endif // RECORD_H

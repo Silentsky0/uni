@@ -5,9 +5,15 @@
 #include <time.h>
 #include <memory.h>
 
+long disk_num_write_operations = 0;
+long disk_num_read_operations = 0;
 
-int file_size(FILE **file);
-
+int get_write_operations_number() {
+    return disk_num_write_operations;
+}
+int get_read_operations_number() {
+    return disk_num_read_operations;
+}
 
 int disk_open_file(struct tape *tape, const char *mode) {
 
@@ -24,6 +30,8 @@ int disk_open_file(struct tape *tape, const char *mode) {
 }
 
 void disk_close_file(struct tape *tape) {
+
+    //printf ("%s: file size was %d MB\n\n", tape->path, file_size(&tape->file) / 1024 / 1024);
 
     // if tape is not meant to be written to
     if (tape->file_mode[0] == 'r') {
@@ -59,49 +67,198 @@ void disk_close_file(struct tape *tape) {
     fclose(tape->file);
 }
 
+/*
+ * Checks entire disk if record exists
+ * requires file to be opened
+ */
+int disk_record_exists(FILE **file, struct block *unwritten_block, struct record *r, int blocks_in_file) {
+
+    static int times_checked = 0;
+
+    for (int i = 0; i < blocks_in_file; i++) {
+        struct block block_to_read;
+        int status = read_block(file, i, &block_to_read);
+        if (status < 0) {
+            printf("%s: error reading block\n", __func__);
+        }
+        for (int j = 0; j < RECORDS_IN_BLOCK; j++) {
+            struct record iterator = block_to_read.records[j];
+
+            int diff = 0;
+            for (int k = 0; k < 4; k++) {
+                diff += abs((int) r->id.identity_series[k] - (int) iterator.id.identity_series[k]);
+            }
+
+            if (iterator.id.identity_number == r->id.identity_number && diff == 0) {
+                printf("%s: this record already exists!!\n", __func__);
+                return 1;
+            }
+        }
+    }
+
+    for (int i = 0; i < RECORDS_IN_BLOCK; i++) {
+        struct record iterator = unwritten_block->records[i];
+
+        if (record_is_empty(&iterator))
+            continue;
+
+        int diff = 0;
+        for (int j = 0; j < 4; j++) {
+           diff += abs((int) r->id.identity_series[j] - (int) iterator.id.identity_series[j]);
+        }
+
+        if (iterator.id.identity_number == r->id.identity_number && diff == 0) {
+            printf("%s: this record already exists!!\n", __func__);
+            return 1;
+        }
+    }
+
+    if (times_checked >= 100000) {
+        printf("times checked: %d", times_checked);
+    }
+
+    return 0;
+}
+
 int disk_generate_random(const char *path, int number_of_records)
 {
     unique_random_numbers(number_of_records);
 
-    FILE *file = fopen(path, "wb");
+    FILE *file = fopen(path, "wb+");
     if (file == NULL)
         return -EIO;
 
-    int blocks_to_generate = number_of_records / RECORDS_IN_BLOCK;
+    int blocks_to_generate = number_of_records / RECORDS_IN_BLOCK + 1;
 
     struct block new_block;
     struct record new_record;
 
     for (int i = 0; i < blocks_to_generate; i++) {
         for (int j = 0; j < RECORDS_IN_BLOCK; j++) {
+
             generate_random_record(&new_record);
+            //while (disk_record_exists(&file, &new_block, &new_record, i)) {
+            //    generate_random_record(&new_record);
+            //}
             new_block.records[j] = new_record;
         }
 
         write_block(&file, i, &new_block);
     }
 
-    // some number of records that do not fill the whole block
-    int leftover_records = number_of_records - blocks_to_generate * RECORDS_IN_BLOCK;
+    // // some number of records that do not fill the whole block
+    // int leftover_records = number_of_records - blocks_to_generate * RECORDS_IN_BLOCK;
 
-    if (leftover_records > 0) {
-        struct block leftover_block;
+    // if (leftover_records > 0) {
+    //     struct block leftover_block;
 
-        for (int i = 0; i < leftover_records; i++) {
-            generate_random_record(&new_record);
-            leftover_block.records[i] = new_record;
-        }
-        // fill the block with incorrect records
-        for (int i = leftover_records; i < RECORDS_IN_BLOCK; i++) {
-            generate_incorrect_record(&new_record);
-            leftover_block.records[i] = new_record;
-        }
+    //     for (int i = 0; i < leftover_records; i++) {
+    //         generate_random_record(&new_record);
+    //         leftover_block.records[i] = new_record;
+    //     }
+    //     // fill the block with incorrect records
+    //     for (int i = leftover_records; i < RECORDS_IN_BLOCK; i++) {
+    //         generate_incorrect_record(&new_record);
+    //         leftover_block.records[i] = new_record;
+    //     }
 
-        write_block(&file, blocks_to_generate, &leftover_block);
-    }
+    //     write_block(&file, blocks_to_generate, &leftover_block);
+    // }
 
     fclose(file);
 
+    return 0;
+}
+
+int disk_generate_records(const char *path, int to_generate) {
+
+    printf("\n=== Data generation phase ===\n\n");
+
+    if (to_generate < 50000) {
+        return disk_generate_random(path, to_generate);
+    }
+
+    unique_random_numbers(to_generate);
+
+    FILE *file = fopen(path, "wb+");
+    if (file == NULL)
+        return -EIO;
+
+    struct record r;
+    struct block b;
+    int blocks_to_generate = to_generate / RECORDS_IN_BLOCK + 1;
+
+    for (int i = 0; i < blocks_to_generate; i++) {
+        for (int j = 0; j < RECORDS_IN_BLOCK; j++) {
+            generate_next_record(&r);
+            b.records[j] = r;
+        }
+
+        write_block(&file, i, &b);
+    }
+
+    // shuffle blocks
+    // for (int i = 0; i < blocks_to_generate; i++) {
+    //     int j = i + rand() % (blocks_to_generate - i);
+
+    //     struct block b1;
+    //     struct block b2;
+
+    //     int status = read_block(&file, i, &b1);
+    //     status += read_block(&file, j, &b2);
+
+
+    //     // TODO shuffle records inside block
+    //     for (int p = 0; p < RECORDS_IN_BLOCK; p++) {
+    //         int q = rand() % RECORDS_IN_BLOCK;
+
+    //         struct record tmp;
+    //         tmp = b1.records[p];
+    //         b1.records[p] = b1.records[q];
+    //         b1.records[q] = tmp;
+    //     }
+
+    //     status += write_block(&file, j, &b1);
+    //     status += write_block(&file, i, &b2);
+
+    //     if (status < 0)
+    //         printf("%s: error shuffling blocks\n", __func__);
+    // }
+
+    // TODO randomness test
+    for (int i = 0; i < blocks_to_generate * 2; i++) {
+        int index1 = rand() % blocks_to_generate;
+        int index2 = rand() % blocks_to_generate;
+
+        struct block b1;
+        struct block b2;
+
+        int status = read_block(&file, index1, &b1);
+        status += read_block(&file, index2, &b2);
+
+        for (int p = 0; p < RECORDS_IN_BLOCK; p++) {
+            int q = rand() % RECORDS_IN_BLOCK;
+
+            struct record tmp;
+            tmp = b1.records[p];
+            b1.records[p] = b1.records[q];
+            b1.records[q] = tmp;
+        }
+
+        for (int p = 0; p < RECORDS_IN_BLOCK; p++) {
+            int q = rand() % RECORDS_IN_BLOCK;
+
+            struct record tmp;
+            tmp = b2.records[p];
+            b2.records[p] = b2.records[q];
+            b2.records[q] = tmp;
+        }
+
+        status += write_block(&file, index2, &b1);
+        status += write_block(&file, index1, &b2);
+    }
+
+    fclose(file);
     return 0;
 }
 
@@ -118,7 +275,7 @@ int disk_get_next_record(struct tape *tape, struct record *record) {
     struct buffer *buffer = &tape->buffer;
 
     if (buffer->block_index == file_size(&tape->file) / BLOCK_SIZE) {
-        printf("%s: end of file reached\n", __func__); // TODO remove this message
+        //printf("%s: end of file reached\n", __func__); // TODO remove this message
         generate_incorrect_record(record);
         return -ENOFILE;
     }
@@ -201,6 +358,8 @@ int write_block(FILE **file, int index, struct block *block) {
         return -EIO;
     }
 
+    disk_num_write_operations += 1;
+
     return 0;
 }
 
@@ -217,6 +376,8 @@ int read_block(FILE **file, int index, struct block *block) {
         printf("%s: fread error\n", __func__);
         return -EIO;
     }
+
+    disk_num_read_operations += 1;
 
     return 0;
 }

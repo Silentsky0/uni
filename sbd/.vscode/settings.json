@@ -2,6 +2,7 @@
     "files.associations": {
         "record.h": "c",
         "stdlib.h": "c",
-        "disk.h": "c"
+        "disk.h": "c",
+        "random": "c"
     }
 }
