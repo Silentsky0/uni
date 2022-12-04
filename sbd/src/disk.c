@@ -443,7 +443,7 @@ void disk_debug_tape(struct tape *tape) {
         }
     }
 
-    if (tape->buffer.block == NULL)
+    if (tape->buffer.block == NULL || tape->buffer.buffer_records == 0)
         return;
 
     for (int i = 0; i < RECORDS_IN_BLOCK; i++) {

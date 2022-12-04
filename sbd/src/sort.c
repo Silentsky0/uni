@@ -28,7 +28,7 @@ void toggle_tape_index(int *tape_index) {
     *tape_index = 1 - *tape_index;
 }
 
-int sort_distribution_phase(const char *input_file_path) {
+int sort_distribution_phase(const char *input_file_path, int print_contents) {
     
     // TODO some sort of init_input function
     struct tape input;
@@ -55,7 +55,8 @@ int sort_distribution_phase(const char *input_file_path) {
 
     printf("\n=== General distribution phase ===\n\n");
 
-    // disk_debug_tape(&input);
+    if (print_contents)
+        disk_debug_tape(&input);
 
     while (disk_get_next_record(&input, &record) > 0) {
 
@@ -128,7 +129,7 @@ int sort_distribution_phase(const char *input_file_path) {
     return 0;
 }
 
-int sort_sorting_phase() {
+int sort_sorting_phase(int print_contents, int print_every_phase) {
 
     printf("\n=== Sorting phase ===\n\n");
 
@@ -189,6 +190,13 @@ int sort_sorting_phase() {
         sort_single_phase(runs_to_merge, tape_1, tape_2, merge_tape);
         dummy_runs = 0;
 
+        if (print_every_phase) {
+            printf("\n== Sorting phase %d ==\n", phase_number);
+            disk_debug_tape(&tapes[0]);
+            disk_debug_tape(&tapes[1]);
+            disk_debug_tape(&tapes[2]);
+        }
+
         if (!predicate_tapes_sorted()) {
             // swap tape numbers
             if (tape_1_runs > tape_2_runs) {
@@ -229,12 +237,12 @@ int sort_sorting_phase() {
     //disk_debug_tape(&tapes[tape_1]);
     //disk_debug_tape(&tapes[tape_2]);
     //disk_debug_tape(&tapes[merge_tape]);
+    return_merge_tape = merge_tape;
+    
+    if (print_contents)
+        disk_debug_tape(&tapes[return_merge_tape]);
 
     close_sort_tapes();
-
-    //printf("\nmerge tape was %d\n", merge_tape);
-
-    return_merge_tape = merge_tape;
 
     return 0;
 }
@@ -476,7 +484,7 @@ void sort_postprocess_phase(int initial_elements_num, int print_contents) {
 
     printf("Number of disk operations:\n");
     printf("    read  %d\n", get_read_operations_number());
-    printf("    write %d\n\n", get_write_operations_number());
+    printf("    write %d\n", get_write_operations_number());
 
     struct record rec;
     struct record prev;
@@ -524,8 +532,6 @@ void sort_postprocess_phase(int initial_elements_num, int print_contents) {
     else {
         printf("Some errors occured: elements_num %d != %d, sorting errors = %d\n", initial_elements_num_corrected, num_of_elements, sorting_errors);
     }
-
-    printf("\n\n\n\n");
 
     close_sort_tape(return_merge_tape);
 }
