@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.12.2)  3 DEC 2022 15:17
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.12.2)  4 DEC 2022 23:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -103,6 +103,30 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 744.
 LaTeX Info: Redefining \[ on input line 2938.
 LaTeX Info: Redefining \] on input line 2939.
 )
+(/usr/share/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks23
+)
+(/usr/share/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2021/03/04 v1.4d Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2021/08/11 v1.11 sin cos tan (DPC)
+)
+(/usr/share/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 107.
+
+(/usr/share/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2020/10/05 v1.2a Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen149
+\Gin@req@width=\dimen150
+)
 (/usr/share/texmf-dist/tex/latex/amsfonts/amsfonts.sty
 Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
 \symAMSa=\mathgroup4
@@ -122,52 +146,144 @@ File: l3backend-pdftex.def 2022-04-14 L3 backend support: PDF output (pdfTeX)
 (./sprawozdanie.aux)
 \openout1 = `sprawozdanie.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 13.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+ (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count274
+\scratchdimen=\dimen151
+\scratchbox=\box53
+\nofMPsegments=\count275
+\nofMParguments=\count276
+\everyMPshowfont=\toks24
+\MPscratchCnt=\count277
+\MPscratchDim=\dimen152
+\MPnumerator=\count278
+\makeMPintoPDFobject=\count279
+\everyMPtoPDFconversion=\toks25
+) (/usr/share/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
 
- (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
+(/usr/share/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+LaTeX Font Info:    Trying to load font information for U+msa on input line 14.
+
+
+(/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 13.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 14.
 
 
 (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./sprawozdanie.aux) ) 
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+Underfull \hbox (badness 10000) in paragraph at lines 68--68
+[]\T1/cmr/m/n/10.95 Numer
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 68--68
+\T1/cmr/m/n/10.95 eks-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 68--68
+\T1/cmr/m/n/10.95 pe-ry-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 68--68
+[]\T1/cmr/m/n/10.95 Liczba re-kor-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 68--68
+[]\T1/cmr/m/n/10.95 Teoretyczna
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 68--69
+[]\T1/cmr/m/n/10.95 Teoretyczna
+ []
+
+
+Overfull \hbox (107.9967pt too wide) in paragraph at lines 66--83
+[] 
+ []
+
+<../../../images/Screenshots/Screenshot from 2022-12-04 23-43-52.png, id=11, 72
+1.69624pt x 406.51875pt>
+File: ../../../images/Screenshots/Screenshot from 2022-12-04 23-43-52.png Graph
+ic file (type png)
+<use ../../../images/Screenshots/Screenshot from 2022-12-04 23-43-52.png>
+Package pdftex.def Info: ../../../images/Screenshots/Screenshot from 2022-12-04
+ 23-43-52.png  used on input line 84.
+(pdftex.def)             Requested size: 505.18393pt x 284.56117pt.
+
+Overfull \hbox (162.18393pt too wide) in paragraph at lines 84--85
+[][] 
+ []
+
+[2]
+<../../../images/Screenshots/Screenshot from 2022-12-04 23-43-13.png, id=17, 66
+8.4975pt x 405.515pt>
+File: ../../../images/Screenshots/Screenshot from 2022-12-04 23-43-13.png Graph
+ic file (type png)
+<use ../../../images/Screenshots/Screenshot from 2022-12-04 23-43-13.png>
+Package pdftex.def Info: ../../../images/Screenshots/Screenshot from 2022-12-04
+ 23-43-13.png  used on input line 86.
+(pdftex.def)             Requested size: 467.94505pt x 283.85855pt.
+
+Overfull \hbox (124.94505pt too wide) in paragraph at lines 86--87
+[][] 
+ []
+
+
+Overfull \hbox (6.51546pt too wide) in paragraph at lines 88--89
+[]\T1/cmr/m/n/10.95 Na pod-sta-wie ze-bra-nych da-nych oraz utwo-rzo-nych wy-kr
+e-sów mo»na stwier-
+ []
+
+[3 <../../../images/Screenshots/Screenshot from 2022-12-04 23-43-52.png> <../..
+/../images/Screenshots/Screenshot from 2022-12-04 23-43-13.png>] [4]
+(./sprawozdanie.aux) ) 
 Here is how much of TeX's memory you used:
- 2954 strings out of 478238
- 44035 string characters out of 5850456
- 348533 words of memory out of 5000000
- 21204 multiletter control sequences out of 15000+600000
+ 3812 strings out of 478238
+ 57740 string characters out of 5850456
+ 368539 words of memory out of 5000000
+ 22025 multiletter control sequences out of 15000+600000
  480413 words of font info for 59 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 54i,6n,62p,316b,353s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/us
-r/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}{/usr/share/texmf-
-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}</usr/share/texmf-dist/fonts/type
-1/public/cm-super/sfbx1200.pfb></usr/share/texmf-dist/fonts/type1/public/cm-sup
-er/sfbx1440.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb
-></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb></usr/share/te
-xmf-dist/fonts/type1/public/cm-super/sfrm1728.pfb>
-Output written on sprawozdanie.pdf (1 page, 82555 bytes).
+ 55i,8n,62p,316b,353s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-
+t1.enc}{/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/s
+hare/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></usr/share/texmf-dist
+/fonts/type1/public/cm-super/sfbx1440.pfb></usr/share/texmf-dist/fonts/type1/pu
+blic/cm-super/sfrm1095.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/s
+frm1200.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm1728.pfb>
+Output written on sprawozdanie.pdf (4 pages, 120626 bytes).
 PDF statistics:
- 38 PDF objects out of 1000 (max. 8388607)
- 23 compressed objects within 1 object stream
+ 52 PDF objects out of 1000 (max. 8388607)
+ 30 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 11 words of extra memory for PDF output out of 10000 (max. 10000000)
 
