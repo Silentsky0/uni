@@ -12,3 +12,11 @@ struct record tmp_record() {
 
     return record;
 }
+
+struct record tmp_record_by_key(long id) {
+    struct record record = tmp_record();
+
+    record.id = id;
+
+    return record;
+}

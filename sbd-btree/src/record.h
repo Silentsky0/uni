@@ -25,5 +25,6 @@ struct record {
 } __attribute__((__packed__));
 
 struct record tmp_record();
+struct record tmp_record_by_key(long id);
 
 #endif // RECORD_H

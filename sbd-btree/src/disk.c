@@ -34,8 +34,6 @@ int disk_open_file(struct file *file, const char *path, const char *mode) {
     file->path = path;
     file->mode = mode;
 
-    buffer_init(&file->buffer);
-
     return 0;
 }
 
@@ -148,6 +146,8 @@ int disk_read_page(struct file *file, struct page *page, int index) {
         printf("%s: fread error %d\n", __func__, ferror(file->file));
         return -EIO;
     }
+
+    file->current_page = *page;
 
     return 0;
 }

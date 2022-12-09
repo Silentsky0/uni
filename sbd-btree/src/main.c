@@ -14,6 +14,13 @@ int main() {
 
     // check if it is working
     disk_open_file(&test, "data/test.file", "rb+");
+
+    disk_debug_page(&test, 0);
+    printf("\n");
+
+    struct record t = tmp_record_by_key(43);
+    btree_insert_record(&test, &t);
+
     disk_debug_page(&test, 0);
     disk_close_file(&test);
 

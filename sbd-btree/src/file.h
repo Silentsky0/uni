@@ -11,7 +11,7 @@ struct file {
     FILE *file;
     const char *mode;
 
-    struct buffer buffer;
+    struct page current_page;
 
     struct btree btree;
 };
