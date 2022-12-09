@@ -22,4 +22,6 @@ struct page {
 
 int page_init(struct page **page, int tree_order, int is_root, long parent_page);
 
+int page_search_bisection(struct page *page, int key, int left, int right);
+
 #endif // PAGE_H
