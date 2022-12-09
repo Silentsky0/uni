@@ -1,10 +1,10 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include "btree.h"
 #include <stdio.h>
 #include "buffer.h"
 
+#include "btree.h"
 
 struct file {
     const char *path;

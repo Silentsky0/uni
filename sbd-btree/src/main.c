@@ -2,23 +2,19 @@
 
 #include "disk.h"
 #include "file.h"
-
+#include "btree.h"
 
 int main() {
 
     struct file test;
-    test.path = "data/test.file";
-    test.mode = "wb+";
 
-    test.btree.order = 2;
-    test.btree.height = 2;
+    // init
+    disk_init_file(&test, "data/test.file", 2);
 
-    disk_open_file(&test);
 
-    page_init(&test.btree.root, test.btree.order);
-
-    disk_write_page(&test, test.btree.root, 0);
-
+    // check if it is working
+    disk_open_file(&test, "data/test.file", "rb+");
+    disk_debug_page(&test, 0);
     disk_close_file(&test);
 
     return 0;

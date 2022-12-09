@@ -24,4 +24,6 @@ struct record {
     struct data data;
 } __attribute__((__packed__));
 
+struct record tmp_record();
+
 #endif // RECORD_H
