@@ -11,6 +11,9 @@ struct file {
     FILE *file;
     const char *mode;
 
+    const char *data_path;
+    FILE *data_file;
+
     struct page current_page;
 
     struct btree btree;

@@ -19,19 +19,32 @@ int tree_real_page_size(struct btree *btree) {
     return SECTOR_SIZE * (tree_page_size(btree) / SECTOR_SIZE + 1);
 }
 
+int tree_data_page_size(struct btree *btree) {
+    return btree->order * 2 * sizeof(struct record);
+}
+/// aligned to sector
+int tree_real_data_page_size(struct btree *btree) {
+    return SECTOR_SIZE * (tree_data_page_size(btree) / SECTOR_SIZE + 1);
+}
 
 /*
  *  Open a file from disk
  *  assumes the path and mode are set
  */
-int disk_open_file(struct file *file, const char *path, const char *mode) {
-    
+int disk_open_file(struct file *file, const char *path, const char *data_path, const char *mode) {
+
     file->file = fopen(path, mode);
     if (file->file == NULL) {
-        printf("%s: file %s doesn't exist\n", __func__, file->path);
+        printf("%s: file %s doesn't exist\n", __func__, path);
+        return -EIO;
+    }
+    file->data_file = fopen(data_path, mode);
+    if (file->data_file == NULL) {
+        printf("%s: file %s doesn't exist\n", __func__, data_path);
         return -EIO;
     }
     file->path = path;
+    file->data_path = data_path;
     file->mode = mode;
 
     return 0;
@@ -40,8 +53,12 @@ int disk_open_file(struct file *file, const char *path, const char *mode) {
 int disk_close_file(struct file *file) {
     if (file->mode[0] == 'r') {
         fclose(file->file);
+        fclose(file->data_file);
         return 0;
     }
+
+    fclose(file->file);
+    fclose(file->data_file);
 
     //struct buffer *buffer = &file->buffer;
 
@@ -133,7 +150,7 @@ int disk_read_page(struct file *file, struct page *page, int index) {
     status = fread((void *) &page->page_pointers[0], sizeof(page->page_pointers[0]), 1, file->file);
     if (status < 1) {
         perror("Error: ");
-        printf("%s: fread error %d\n", __func__, ferror(file->file));
+        printf("%s: fread error %d status %d\n", __func__, ferror(file->file), status);
         return -EIO;
     }
     for (int i = 0; i < page->number_of_elements; i++) {
@@ -143,7 +160,7 @@ int disk_read_page(struct file *file, struct page *page, int index) {
     }
     if (status < 1) {
         perror("Error: ");
-        printf("%s: fread error %d\n", __func__, ferror(file->file));
+        printf("%s: fread error %d status %d\n", __func__, ferror(file->file), status);
         return -EIO;
     }
 
@@ -152,13 +169,37 @@ int disk_read_page(struct file *file, struct page *page, int index) {
     return 0;
 }
 
+
+/// @brief Add record to data file
+/// @return 
+int disk_add_record(struct file *file, struct page *page, struct record *record, int index) {
+    int next_record_index = disk_next_record_index();
+
+    int status = fseek(file->data_file, sizeof(struct record) * next_record_index, 0);
+    if (status != 0) {
+        printf("%s: fseek error\n", __func__);
+        return -EIO;
+    }
+
+    status = fwrite(record, sizeof(struct record), 1, file->data_file);
+    if (status < 1) {
+        perror("Error: ");
+        printf("%s: fread error %d\n", __func__, ferror(file->file));
+        return -EIO;
+    }
+
+    page->data_pointers[index] = next_record_index;
+
+    return status;
+}
+
 void disk_debug_page(struct file *file, int index) {
 
     struct page page;
 
     int status = disk_read_page(file, &page, index);
     if (status < 0) {
-        printf("%s: some error\n", __func__);
+        printf("%s: error reading page %d\n", __func__, index);
         return;
     }
 
@@ -189,9 +230,13 @@ void disk_debug_page(struct file *file, int index) {
 
 /// @brief Initialises a file with the B-Tree structure
 /// @return status code
-int disk_init_file(struct file *file, const char *path, int tree_order) {
+int disk_init_file(struct file *file, const char *path, const char *data_path, int tree_order) {
+    int status;
 
-    disk_open_file(file, path, "rb+");
+    status = disk_open_file(file, path, data_path, "wb+");
+    if (status < 0) {
+        printf("%s: can't open file\n", __func__);
+    }
 
     struct record initial = tmp_record();
     btree_init(file, &initial, tree_order);
@@ -201,4 +246,18 @@ int disk_init_file(struct file *file, const char *path, int tree_order) {
     disk_close_file(file);
 
     return 0; // TODO add status
+}
+
+int disk_next_record_index() {
+    static int record_index = 0; // TODO maybe start from -1
+
+    record_index += 1;
+    return record_index;
+}
+
+int disk_next_page_index() {
+    static int page_index = 0;
+
+    page_index += 1;
+    return page_index;
 }

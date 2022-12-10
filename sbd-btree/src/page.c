@@ -3,21 +3,20 @@
 #include "memory.h"
 #include <stdlib.h>
 #include "btree.h"
-
+#include "disk.h"
 #include <stdio.h>
 
-int page_init(struct page **page, int tree_order, int is_root, long parent_page) {
+int page_init(struct page **page, int tree_order, int is_root, long parent_page, int page_index) {
 
     int status = 0;
 
     if (is_root) {
         *page = (struct page *)malloc(sizeof(struct page));
-        (*page)->number_of_elements = 1;
+        (*page)->number_of_elements = 0;
         (*page)->is_root = 1;
         (*page)->parent_page_pointer = -1;
-        (*page)->page_index = 0;
+        (*page)->page_index = page_index;
 
-        (*page)->data_pointers[0] = -1; // TODO point to some data
         (*page)->page_pointers[0] = -1;
         (*page)->page_pointers[1] = -1;
 
@@ -28,6 +27,7 @@ int page_init(struct page **page, int tree_order, int is_root, long parent_page)
     (*page)->number_of_elements = 0;
     (*page)->is_root = 0;
     (*page)->parent_page_pointer = parent_page;
+    (*page)->page_index = page_index;
     
     (*page)->page_pointers[0] = -1;
     for (int i = 0; i < tree_order; i++) {
@@ -41,7 +41,7 @@ int page_init(struct page **page, int tree_order, int is_root, long parent_page)
 
 /// @brief Insert recordd at selected index in page (where it should be)
 /// @return Status code
-int page_insert_record(struct page **page, struct record *record, int index) {
+int page_insert_record(struct file *file, struct page **page, struct record *record, int index) {
 
     int number_of_elements = (*page)->number_of_elements;
 
@@ -52,8 +52,9 @@ int page_insert_record(struct page **page, struct record *record, int index) {
     }
 
     (*page)->keys[index] = record->id;
-    (*page)->data_pointers[index] = -1; // TODO data pointers
     (*page)->page_pointers[index + 1] = -1;
+
+    disk_add_record(file, *page, record, index);
 
     (*page)->number_of_elements += 1;
 
@@ -77,4 +78,12 @@ int page_search_bisection(struct page *page, int key, int left, int right) {
     }
 
     return pivot;
+}
+
+int page_is_leaf(struct page *page) {
+    for (int i = 0; i <= page->number_of_elements; i++) {
+        if (page->page_pointers[i] != -1)
+            return 0;
+    }
+    return 1;
 }
