@@ -59,11 +59,13 @@ int btree_search_page(struct file *file, int key, struct page *page, int *index)
 
 /// @brief Search for page which contains record by key
 /// @return returns 0 if element was not found, -1 if it was
-int btree_search(struct file *file, int key, int *page) {
+int btree_search(struct file *file, int key, int *page_index, int *element_index) {
     struct btree *tree = &file->btree;
 
-    file->current_page = *(tree->root);
-    int status = btree_search_page(file, key, tree->root, page);
+    btree_get_page(file, 0, tree->root);
+    int status = btree_search_page(file, key, tree->root, element_index);
+
+    *page_index = file->current_page.page_index;
 
     if (status < 0) {
         return -1;
@@ -76,24 +78,22 @@ int btree_insert_record(struct file *file, struct record *record) {
     int status = 0;
     struct btree *tree = &file->btree;
 
-    int *page_index;
-    status = btree_search(file, record->id, page_index);
+    int page_index;
+    int element_index;
+    status = btree_search(file, record->id, &page_index, &element_index);
     if (status < 0) {
         printf("%s: key %ld already exists\n", __func__, record->id);
         return -1;
     }
 
-    printf("test %d\n", *page_index);
+    printf("found element %ld at page %d at index %d\n", record->id, page_index, element_index);
 
     struct page *current = &file->current_page;
-
     if (file->current_page.number_of_elements < 2 * tree->order) {
-        page_insert_record(&current, record);
+        page_insert_record(&current, record, element_index);
     }
 
     btree_set_page(file, file->current_page.page_index, &file->current_page);
-
-    printf("tsdsd %d\n", current->number_of_elements);
 
     return 0;
 }

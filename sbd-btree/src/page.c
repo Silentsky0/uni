@@ -39,10 +39,21 @@ int page_init(struct page **page, int tree_order, int is_root, long parent_page)
     return status;
 }
 
-int page_insert_record(struct page **page, struct record *record) {
-    (*page)->keys[(*page)->number_of_elements] = record->id;
-    (*page)->data_pointers[(*page)->number_of_elements] = -1; // TODO data pointers
-    (*page)->page_pointers[(*page)->number_of_elements + 1] = -1;
+/// @brief Insert recordd at selected index in page (where it should be)
+/// @return Status code
+int page_insert_record(struct page **page, struct record *record, int index) {
+
+    int number_of_elements = (*page)->number_of_elements;
+
+    for (int i = number_of_elements; i > index; i--) {
+        (*page)->keys[i] = (*page)->keys[i - 1];
+        (*page)->data_pointers[i] = (*page)->data_pointers[i - 1];
+        (*page)->page_pointers[i + 1] = (*page)->page_pointers[i];
+    }
+
+    (*page)->keys[index] = record->id;
+    (*page)->data_pointers[index] = -1; // TODO data pointers
+    (*page)->page_pointers[index + 1] = -1;
 
     (*page)->number_of_elements += 1;
 

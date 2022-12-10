@@ -162,7 +162,13 @@ void disk_debug_page(struct file *file, int index) {
         return;
     }
 
-    printf("-- page %d num of elements %d parent page %ld --\n", index, page.number_of_elements, page.parent_page_pointer);
+    if (page.parent_page_pointer == -1) {
+        printf("-- root page num of elements %d --\n", page.number_of_elements);
+    }
+    else {
+        printf("-- page %d num of elements %d parent page %ld --\n", index, page.number_of_elements, page.parent_page_pointer);
+    }
+
     printf("keys:\n  ");
     for (int i = 0; i < page.number_of_elements; i++) {
         printf("%ld ", page.keys[i]);

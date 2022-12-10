@@ -18,7 +18,13 @@ int main() {
     disk_debug_page(&test, 0);
     printf("\n");
 
-    struct record t = tmp_record_by_key(43);
+    struct record t = tmp_record_by_key(50);
+    btree_insert_record(&test, &t);
+
+    t = tmp_record_by_key(14);
+    btree_insert_record(&test, &t);
+
+    t = tmp_record_by_key(15);
     btree_insert_record(&test, &t);
 
     disk_debug_page(&test, 0);

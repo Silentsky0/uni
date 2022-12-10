@@ -17,7 +17,7 @@ struct btree {
 };
 
 int btree_init(struct file *file, struct record *initial_record, int tree_order);
-int btree_search(struct file *file, int key, int *page);
+int btree_search(struct file *file, int key, int *page_index, int *element_index);
 int btree_insert_record(struct file *file, struct record *record);
 
 #endif // BTREE_H
