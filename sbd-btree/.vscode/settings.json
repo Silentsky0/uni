@@ -5,6 +5,7 @@
         "memory.h": "c",
         "stdlib.h": "c",
         "status.h": "c",
-        "file.h": "c"
+        "file.h": "c",
+        "record.h": "c"
     }
 }

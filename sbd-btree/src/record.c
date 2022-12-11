@@ -1,4 +1,5 @@
 #include "record.h"
+#include "string.h"
 
 struct record tmp_record() {
     struct record record;
@@ -9,6 +10,9 @@ struct record tmp_record() {
     for (int i = 0; i < 3; i++) {
         record.identity.identity_series[i] = identity[i];
     }
+    strcpy(record.data.name, "PAWel");
+    strcpy(record.data.surname, "Cichowski");
+    record.data.age = 21;
 
     return record;
 }

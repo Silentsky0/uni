@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include "buffer.h"
-
 #include "btree.h"
 
 struct file {

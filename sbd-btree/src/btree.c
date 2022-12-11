@@ -1,20 +1,62 @@
 #include "btree.h"
-#include "file.h"
 #include "disk.h"
+#include "file.h"
+#include "page.h"
 
-int btree_init(struct file *file, struct record *initial_record, int tree_order) {
+void btree_get_page(struct file *file, int index, struct page *page);
+void btree_set_page(struct file *file, int index, struct page *page);
+
+int btree_init(struct file *file, const char *path, const char *data_path, int tree_order) {
     int status = 0;
+
+    status = disk_open_file(file, path, data_path, "wb+");
+    if (status < 0) {
+        printf("%s: can't open file\n", __func__);
+    }
+
     struct btree *tree = &file->btree;
 
     tree->order = tree_order;
     tree->height = 1;
+    tree->num_pages = 1;
 
-    status = page_init(&tree->root, tree->order, 1, -1, 0);
-    page_insert_record(file, &tree->root, initial_record, tree->order);
+    status = page_init(&tree->root, tree->order, 1, -1, 0, 0);
 
-    tree->root->keys[0] = initial_record->id;
+    struct record tmp = tmp_record();
+    page_insert_record(file, &tree->root, &tmp, 0);
+
+    disk_write_page(file, &tree->root, 0);
+    disk_update_tree_metadata(file);
+
+    //disk_debug_page(file, 0);
+
+    disk_close_file(file);
 
     return status;
+}
+
+int btree_open(struct file *file, const char *path, const char *data_path) {
+    int status = 0;
+
+    file->path = path;
+    file->data_path = data_path;
+    file->mode = "rb+";
+
+    status = disk_open_file(file, path, data_path, "rb+");
+    if (status < 0) {
+        printf("%s: can't open file\n", __func__);
+    }
+
+    int root_index;
+    disk_load_tree_metadata(file, &root_index);
+
+    printf("tree order %d height %d root %d pages %d\n", file->btree.order, file->btree.height, root_index, file->btree.num_pages);
+
+    disk_read_page(file, &file->btree.root, root_index);
+
+    printf("root key %ld\n", file->btree.root.keys[0]);
+
+    return 0;
 }
 
 /// @brief Load a page into memory by index
@@ -63,8 +105,8 @@ int btree_search_page(struct file *file, int key, struct page *page, int *index)
 int btree_search(struct file *file, int key, int *page_index, int *element_index) {
     struct btree *tree = &file->btree;
 
-    btree_get_page(file, 0, tree->root);
-    int status = btree_search_page(file, key, tree->root, element_index);
+    btree_get_page(file, 0, &tree->root);
+    int status = btree_search_page(file, key, &tree->root, element_index);
 
     *page_index = file->current_page.page_index;
 
@@ -84,18 +126,18 @@ int btree_split_child_page(struct file *file, struct page *parent_page, int chil
     struct page page_to_split;
     btree_get_page(file, parent_page->page_pointers[child_index], &page_to_split);
 
-    struct page *new_page;
-    page_init(&new_page, tree->order, 0, parent_page->page_index, disk_next_page_index());
+    struct page new_page;
+    page_init(&new_page, tree->order, 0, parent_page->page_index, disk_next_page_index(), parent_page->page_depth + 1);
 
-    new_page->number_of_elements = tree->order - 1;
+    new_page.number_of_elements = tree->order - 1;
     for (int i = 0; i < tree->order - 1; i++) {
-        new_page->keys[i] = page_to_split.keys[i + tree->order];
-        new_page->data_pointers[i] = page_to_split.data_pointers[i + tree->order];
+        new_page.keys[i] = page_to_split.keys[i + tree->order];
+        new_page.data_pointers[i] = page_to_split.data_pointers[i + tree->order];
     }
 
     if (!page_is_leaf(&page_to_split)) {
         for (int i = 0; i < tree->order; i++) {
-            new_page->page_pointers[i] = page_to_split.page_pointers[i + 1];
+            new_page.page_pointers[i] = page_to_split.page_pointers[i + 1];
         }
     }
 
@@ -110,13 +152,13 @@ int btree_split_child_page(struct file *file, struct page *parent_page, int chil
     }
 
     parent_page->keys[child_index] = page_to_split.keys[tree->order - 1];
-    parent_page->page_pointers[child_index + 1] = new_page->page_index;
+    parent_page->page_pointers[child_index + 1] = new_page.page_index;
 
     parent_page->number_of_elements += 1;
 
     btree_set_page(file, parent_page->page_index, parent_page);
     btree_set_page(file, page_to_split.page_index, &page_to_split);
-    btree_set_page(file, new_page->page_index, new_page);
+    btree_set_page(file, new_page.page_index, &new_page);
     
     return status;
 }
@@ -135,9 +177,8 @@ int btree_insert_record(struct file *file, struct record *record) {
 
     printf("key %ld should be at page %d at index %d\n", record->id, page_index, element_index);
 
-    struct page *current = &file->current_page;
     if (file->current_page.number_of_elements < 2 * tree->order) {
-        page_insert_record(file, &current, record, element_index);
+        page_insert_record(file, &file->current_page, record, element_index);
 
         btree_set_page(file, file->current_page.page_index, &file->current_page);
 
@@ -154,13 +195,13 @@ int btree_insert_record(struct file *file, struct record *record) {
 
     // if root is being split, make it a child of a new empty node
     if (file->current_page.is_root) {
-        struct page *child_page;
+        struct page child_page;
 
-        page_init(&child_page, tree->order, 1, -1, disk_next_page_index());
+        page_init(&child_page, tree->order, 1, -1, disk_next_page_index(), 0);
         file->current_page.is_root = 0;
-        file->current_page.parent_page_pointer = child_page->page_index;
+        file->current_page.parent_page_pointer = child_page.page_index;
         tree->root = child_page;
-        child_page->page_pointers[0] = file->current_page.page_index;
+        child_page.page_pointers[0] = file->current_page.page_index;
     }
     //btree_split_child_page(file, &file->current_page, 0); // 0 because root is split
 
