@@ -90,3 +90,28 @@ int page_is_leaf(struct page *page) {
     }
     return 1;
 }
+
+void page_print(struct page *page) {
+    if (page->parent_page_pointer == -1) {
+        printf("-- root page index %ld num of elements %d --\n", page->page_index, page->number_of_elements);
+    }
+    else {
+        printf("-- page %ld num of elements %d parent page %ld depth %d --\n", page->page_index, page->number_of_elements, page->parent_page_pointer, page->page_depth);
+    }
+
+    printf("keys:\n  ");
+    for (int i = 0; i < page->number_of_elements; i++) {
+        printf("%ld ", page->keys[i]);
+    }
+
+    printf("\ndata pointers:\n  ");
+    for (int i = 0; i < page->number_of_elements; i++) {
+        printf("%ld ", page->data_pointers[i]);
+    }
+
+    printf("\npage pointers:\n  ");
+    for (int i = 0; i < page->number_of_elements + 1; i++) {
+        printf("%ld ", page->page_pointers[i]);
+    }
+    printf("\n");
+}

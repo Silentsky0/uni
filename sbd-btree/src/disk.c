@@ -110,7 +110,8 @@ int disk_write_page(struct file *file, struct page *page, int index) {
         status += fwrite((void *) &data_pointer, sizeof(data_pointer), 1, file->file);
         status += fwrite((void *) &page_pointer, sizeof(page_pointer), 1, file->file);
 
-        printf("writing key %ld data %ld\n", page->keys[i], page->data_pointers[i]);
+        if (DISK_DEBUG)
+            printf("writing key %ld data %ld\n", page->keys[i], page->data_pointers[i]);
     }
     if (status < 3 * page->number_of_elements) {
         perror("Error: ");
@@ -151,6 +152,7 @@ int disk_read_page(struct file *file, struct page *page, int index) {
     fread(&page->is_root, sizeof(page->is_root), 1, file->file); // TODO status
     fread(&page->parent_page_pointer, sizeof(page->parent_page_pointer), 1, file->file);
     fread(&page->page_depth, sizeof(page->page_depth), 1, file->file);
+    page->page_index = index;
 
     // printf("depth %d parent %ld\n", page->page_depth, page->parent_page_pointer);
 
@@ -165,7 +167,8 @@ int disk_read_page(struct file *file, struct page *page, int index) {
         status = fread((void *) &page->data_pointers[i], sizeof(page->data_pointers[0]), 1, file->file);
         status = fread((void *) &page->page_pointers[i + 1], sizeof(page->page_pointers[0]), 1, file->file);
 
-        printf("reading key %ld data %ld\n", page->keys[i], page->data_pointers[i]);
+        if (DISK_DEBUG)
+            printf("reading key %ld data %ld\n", page->keys[i], page->data_pointers[i]);
     }
     if (status < 1) {
         perror("Error: ");
@@ -246,7 +249,7 @@ void disk_debug_page(struct file *file, int index) {
     }
 
     if (page.parent_page_pointer == -1) {
-        printf("-- root page num of elements %d --\n", page.number_of_elements);
+        printf("-- root page index %ld num of elements %d --\n", page.page_index, page.number_of_elements);
     }
     else {
         printf("-- page %d num of elements %d parent page %ld depth %d--\n", index, page.number_of_elements, page.parent_page_pointer, page.page_depth);

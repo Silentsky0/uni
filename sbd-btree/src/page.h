@@ -28,5 +28,6 @@ int page_insert_record(struct file *file, struct page *page, struct record *reco
 int page_search_bisection(struct page *page, int key, int left, int right);
 
 int page_is_leaf(struct page *page);
+void page_print(struct page *page);
 
 #endif // PAGE_H

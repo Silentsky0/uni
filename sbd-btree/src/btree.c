@@ -129,19 +129,29 @@ int btree_split_child_page(struct file *file, struct page *parent_page, int chil
     struct page new_page;
     page_init(&new_page, tree->order, 0, parent_page->page_index, disk_next_page_index(), parent_page->page_depth + 1);
 
-    new_page.number_of_elements = tree->order - 1;
-    for (int i = 0; i < tree->order - 1; i++) {
-        new_page.keys[i] = page_to_split.keys[i + tree->order];
-        new_page.data_pointers[i] = page_to_split.data_pointers[i + tree->order];
+
+    printf("\n=== split child index %d ===\n\n", child_index);
+
+    printf("\nbefore split:\n");
+    page_print(parent_page);
+    page_print(&page_to_split);
+    page_print(&new_page);
+
+    // move elements on the right to a new page
+    new_page.number_of_elements = tree->order;
+    for (int i = 0; i < tree->order; i++) {
+        new_page.keys[i] = page_to_split.keys[i + tree->order + 1];
+        new_page.data_pointers[i] = page_to_split.data_pointers[i + tree->order + 1];
     }
 
     if (!page_is_leaf(&page_to_split)) {
+        printf("page %ld is not a leaf\n", page_to_split.page_index);
         for (int i = 0; i < tree->order; i++) {
             new_page.page_pointers[i] = page_to_split.page_pointers[i + 1];
         }
     }
 
-    page_to_split.number_of_elements = tree->order - 1;
+    page_to_split.number_of_elements = tree->order;
 
     for (int i = parent_page->number_of_elements; i >= child_index; i--) {
         parent_page->page_pointers[i + 1] = parent_page->page_pointers[i];
@@ -151,10 +161,17 @@ int btree_split_child_page(struct file *file, struct page *parent_page, int chil
         parent_page->data_pointers[i + 1] = parent_page->keys[i];
     }
 
-    parent_page->keys[child_index] = page_to_split.keys[tree->order - 1];
-    parent_page->page_pointers[child_index + 1] = new_page.page_index;
+    // move the middle node of split node to parent
+    parent_page->keys[child_index] = page_to_split.keys[tree->order];
+    parent_page->data_pointers[child_index] = page_to_split.data_pointers[tree->order];
 
+    parent_page->page_pointers[child_index + 1] = new_page.page_index;
     parent_page->number_of_elements += 1;
+
+    printf("\nafter split\n");
+    page_print(parent_page);
+    page_print(&page_to_split);
+    page_print(&new_page);
 
     btree_set_page(file, parent_page->page_index, parent_page);
     btree_set_page(file, page_to_split.page_index, &page_to_split);
@@ -191,19 +208,22 @@ int btree_insert_record(struct file *file, struct record *record) {
 
     // compensation not possible
 
-    //page_insert_record(file, &current, record, element_index);
-
     // if root is being split, make it a child of a new empty node
     if (file->current_page.is_root) {
         struct page child_page;
+
+        page_insert_record(file, &file->current_page, record, element_index);
 
         page_init(&child_page, tree->order, 1, -1, disk_next_page_index(), 0);
         file->current_page.is_root = 0;
         file->current_page.parent_page_pointer = child_page.page_index;
         tree->root = child_page;
+        btree_set_page(file, file->current_page.page_index, &file->current_page);
         child_page.page_pointers[0] = file->current_page.page_index;
+
+        btree_split_child_page(file, &child_page, 0); // 0 because root is split
     }
-    //btree_split_child_page(file, &file->current_page, 0); // 0 because root is split
+   
 
     return 0;
 }
