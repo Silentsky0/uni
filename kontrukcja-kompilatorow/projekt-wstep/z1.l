@@ -1,4 +1,3 @@
 %%
-[a-z]+  printf(yytext);
-[A-Z]+  ECHO;
+"\n" {printf("dupa\n");}
 
